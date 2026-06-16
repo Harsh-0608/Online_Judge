@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Clock, Users, ArrowLeft, ArrowRight, ShieldCheck, Flame } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { API_BASE } from '../config';
 
 const Contests = () => {
+  const navigate = useNavigate();
   const [contests, setContests] = useState([]);
   const [selectedContest, setSelectedContest] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -130,78 +132,136 @@ const Contests = () => {
             </div>
           </div>
 
-          {/* Leaderboard Rankings Table */}
-          {leaderboardLoading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '16px' }}>
-              <div style={{ width: '40px', height: '40px', border: '4px solid var(--border-glass)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-              <span style={{ color: 'var(--color-text-muted)', fontWeight: '600' }}>Loading contest standings...</span>
-            </div>
-          ) : (
-            <div className="glass-card" style={{ padding: '0', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14.5px', minWidth: '680px' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-glass)', backgroundColor: 'rgba(0, 0, 0, 0.015)' }}>
-                    <th style={{ padding: '18px 24px', fontWeight: '700', width: '80px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Rank</th>
-                    <th style={{ padding: '18px 24px', fontWeight: '700', color: 'var(--color-text-main)' }}>Username</th>
-                    <th style={{ padding: '18px 24px', fontWeight: '700', width: '150px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Solved</th>
-                    <th style={{ padding: '18px 24px', fontWeight: '700', width: '150px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Score</th>
-                    <th style={{ padding: '18px 24px', fontWeight: '700', width: '150px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Penalty Time</th>
-                    <th style={{ padding: '18px 24px', fontWeight: '700', width: '150px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Rating</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {leaderboard.map((row) => (
-                    <tr 
-                      key={row.rank} 
-                      style={{ 
-                        borderBottom: '1px solid var(--border-glass)',
-                        backgroundColor: row.isCurrentUser ? 'rgba(79, 70, 229, 0.04)' : 'transparent',
-                        fontWeight: row.isCurrentUser ? '700' : 'normal'
-                      }}
-                    >
-                      <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle' }}>
-                        {row.rank === 1 ? (
-                          <Trophy size={18} color="#d97706" style={{ filter: 'drop-shadow(0 2px 4px rgba(217,119,6,0.3))' }} />
-                        ) : row.rank === 2 ? (
-                          <Trophy size={18} color="#94a3b8" />
-                        ) : row.rank === 3 ? (
-                          <Trophy size={18} color="#b45309" />
-                        ) : (
-                          <span>{row.rank}</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '18px 24px', verticalAlign: 'middle' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {row.isCurrentUser && <Flame size={16} color="var(--primary)" />}
-                          <span style={{ color: row.isCurrentUser ? 'var(--primary)' : 'var(--color-text-main)' }}>
-                            {row.username}
+          {/* Two-Column Grid: Problems List (Left) & Standings (Right) */}
+          <div className="contest-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '30px', alignItems: 'start' }}>
+            
+            {/* LEFT COLUMN: Problems list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="glass-card" style={{ padding: '24px 28px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--color-text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={20} color="var(--primary)" />
+                  Contest Challenges
+                </h2>
+
+                {selectedContest.status === 'Upcoming' ? (
+                  <div style={{ textAlign: 'center', padding: '30px 20px', color: 'var(--color-text-muted)' }}>
+                    <Clock size={32} color="var(--primary)" style={{ opacity: 0.4, marginBottom: '12px', margin: '0 auto' }} />
+                    <h4 style={{ fontSize: '14.5px', fontWeight: '700', color: 'var(--color-text-main)', marginBottom: '6px' }}>Challenges Locked</h4>
+                    <p style={{ fontSize: '12.5px', lineHeight: '1.4' }}>This contest starts in a few days. Register now to be notified when it goes live!</p>
+                  </div>
+                ) : selectedContest.problems && selectedContest.problems.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {selectedContest.problems.map((prob, idx) => (
+                      <div key={prob._id || idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-glass)', borderRadius: '10px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--primary)' }}>Problem #{idx + 1}</span>
+                          <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--color-text-main)' }}>{prob.title}</span>
+                          <span style={{ 
+                            fontSize: '11px', 
+                            fontWeight: '800', 
+                            width: 'fit-content',
+                            color: prob.difficulty === 'Easy' ? 'var(--success)' : prob.difficulty === 'Medium' ? 'var(--warning)' : 'var(--danger)',
+                            backgroundColor: prob.difficulty === 'Easy' ? 'var(--success-glow)' : prob.difficulty === 'Medium' ? 'rgba(245, 158, 11, 0.08)' : 'var(--danger-glow)',
+                            padding: '2px 8px', 
+                            borderRadius: '8px'
+                          }}>
+                            {prob.difficulty}
                           </span>
                         </div>
-                      </td>
-                      <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle', fontWeight: '600' }}>
-                        {row.solved} / 4
-                      </td>
-                      <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle', fontWeight: '600', color: 'var(--success)' }}>
-                        {row.points} pts
-                      </td>
-                      <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle', color: 'var(--color-text-muted)' }}>
-                        {row.time}
-                      </td>
-                      <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle' }}>
-                        <span style={{ 
-                          fontSize: '12.5px', 
-                          fontWeight: '800', 
-                          color: row.rating >= 2400 ? '#ef4444' : row.rating >= 1800 ? 'var(--primary)' : 'var(--color-text-muted)' 
-                        }}>
-                          {row.rating}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <button
+                          onClick={() => navigate(`/problems/${prob.slug}`)}
+                          className="btn btn-primary"
+                          style={{ padding: '8px 16px', fontSize: '12.5px', fontWeight: '700' }}
+                        >
+                          Solve
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: '14px', textAlign: 'center', padding: '20px 0' }}>
+                    No problems linked to this contest.
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* RIGHT COLUMN: Leaderboard Table */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {leaderboardLoading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '16px' }}>
+                  <div style={{ width: '40px', height: '40px', border: '4px solid var(--border-glass)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                  <span style={{ color: 'var(--color-text-muted)', fontWeight: '600' }}>Loading contest standings...</span>
+                </div>
+              ) : (
+                <div className="glass-card" style={{ padding: '0', overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14.5px', minWidth: '680px' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-glass)', backgroundColor: 'rgba(0, 0, 0, 0.015)' }}>
+                        <th style={{ padding: '18px 24px', fontWeight: '700', width: '80px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Rank</th>
+                        <th style={{ padding: '18px 24px', fontWeight: '700', color: 'var(--color-text-main)' }}>Username</th>
+                        <th style={{ padding: '18px 24px', fontWeight: '700', width: '150px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Solved</th>
+                        <th style={{ padding: '18px 24px', fontWeight: '700', width: '150px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Score</th>
+                        <th style={{ padding: '18px 24px', fontWeight: '700', width: '150px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Penalty Time</th>
+                        <th style={{ padding: '18px 24px', fontWeight: '700', width: '150px', color: 'var(--color-text-muted)', textAlign: 'center' }}>Rating</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaderboard.map((row) => (
+                        <tr 
+                          key={row.rank} 
+                          style={{ 
+                            borderBottom: '1px solid var(--border-glass)',
+                            backgroundColor: row.isCurrentUser ? 'rgba(79, 70, 229, 0.04)' : 'transparent',
+                            fontWeight: row.isCurrentUser ? '700' : 'normal'
+                          }}
+                        >
+                          <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle' }}>
+                            {row.rank === 1 ? (
+                              <Trophy size={18} color="#d97706" style={{ filter: 'drop-shadow(0 2px 4px rgba(217,119,6,0.3))' }} />
+                            ) : row.rank === 2 ? (
+                              <Trophy size={18} color="#94a3b8" />
+                            ) : row.rank === 3 ? (
+                              <Trophy size={18} color="#b45309" />
+                            ) : (
+                              <span>{row.rank}</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '18px 24px', verticalAlign: 'middle' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {row.isCurrentUser && <Flame size={16} color="var(--primary)" />}
+                              <span style={{ color: row.isCurrentUser ? 'var(--primary)' : 'var(--color-text-main)' }}>
+                                {row.username}
+                              </span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle', fontWeight: '600' }}>
+                            {row.solved} / 4
+                          </td>
+                          <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle', fontWeight: '600', color: 'var(--success)' }}>
+                            {row.points} pts
+                          </td>
+                          <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle', color: 'var(--color-text-muted)' }}>
+                            {row.time}
+                          </td>
+                          <td style={{ padding: '18px 24px', textAlign: 'center', verticalAlign: 'middle' }}>
+                            <span style={{ 
+                              fontSize: '12.5px', 
+                              fontWeight: '800', 
+                              color: row.rating >= 2400 ? '#ef4444' : row.rating >= 1800 ? 'var(--primary)' : 'var(--color-text-muted)' 
+                            }}>
+                              {row.rating}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       ) : (
         // Contests List View
