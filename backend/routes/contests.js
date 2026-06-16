@@ -28,32 +28,8 @@ router.get('/leaderboard/global', protect, async (req, res) => {
       };
     });
 
-    // If there are less than 4 users, mix in a few mock users to make it look full
-    if (standings.length < 4) {
-      const mockUsers = [
-        { username: 'binary_blitz', solved: 142, rating: 2840 },
-        { username: 'algo_master_99', solved: 128, rating: 2610 },
-        { username: 'pythonic_spark', solved: 115, rating: 2430 },
-        { username: 'cpp_speedrunner', solved: 98, rating: 2110 }
-      ];
-      
-      mockUsers.forEach(mu => {
-        if (!standings.some(s => s.username.replace(' (You)', '') === mu.username)) {
-          standings.push({
-            rank: standings.length + 1,
-            username: mu.username,
-            solved: mu.solved,
-            rating: mu.rating,
-            isCurrentUser: false
-          });
-        }
-      });
-      
-      // Sort again by solved count
-      standings.sort((a, b) => b.solved - a.solved);
-      // Re-assign ranks
-      standings.forEach((s, idx) => s.rank = idx + 1);
-    }
+    // No mock users mixed in - only real users are shown
+
 
     res.json({
       success: true,
@@ -229,34 +205,15 @@ router.get('/:id/leaderboard', protect, async (req, res) => {
       });
     }
 
-    // Default mock list to populate leaderboard for demo purposes
-    const mockParticipants = [
-      { username: 'binary_blitz', solved: Math.min(4, totalProblems), points: Math.min(4, totalProblems) * 100, time: '38:14', penaltyRaw: 38, rating: 2840, isCurrentUser: false },
-      { username: 'algo_master_99', solved: Math.min(3, totalProblems), points: Math.min(3, totalProblems) * 100, time: '44:50', penaltyRaw: 44, rating: 2610, isCurrentUser: false },
-      { username: 'pythonic_spark', solved: Math.max(0, totalProblems - 2), points: Math.max(0, totalProblems - 2) * 100, time: '52:12', penaltyRaw: 52, rating: 2430, isCurrentUser: false },
-      { username: 'cpp_speedrunner', solved: Math.max(0, totalProblems - 2), points: Math.max(0, totalProblems - 2) * 100, time: '65:05', penaltyRaw: 65, rating: 2110, isCurrentUser: false },
-      { username: 'recursion_ninja', solved: Math.max(0, totalProblems - 3), points: Math.max(0, totalProblems - 3) * 100, time: '45:30', penaltyRaw: 45, rating: 1980, isCurrentUser: false },
-      { username: 'stack_overflowed', solved: Math.max(0, totalProblems - 3), points: Math.max(0, totalProblems - 3) * 100, time: '58:40', penaltyRaw: 58, rating: 1840, isCurrentUser: false },
-      { username: 'null_pointer_ex', solved: 0, points: 0, time: '00:00', penaltyRaw: 999, rating: 1650, isCurrentUser: false }
-    ];
-
-    // Combine real registered users and mock users, removing duplicates
-    const combinedList = [...realStandingsList];
-    for (const mock of mockParticipants) {
-      if (!combinedList.some(r => r.username.replace(' (You)', '') === mock.username)) {
-        combinedList.push(mock);
-      }
-    }
-
     // Sort by solved count (descending), points (descending), and penalty time (ascending)
-    combinedList.sort((a, b) => {
+    realStandingsList.sort((a, b) => {
       if (b.solved !== a.solved) return b.solved - a.solved;
       if (b.points !== a.points) return b.points - a.points;
       return a.penaltyRaw - b.penaltyRaw;
     });
 
     // Assign dynamic ranks
-    const standings = combinedList.map((item, index) => ({
+    const standings = realStandingsList.map((item, index) => ({
       rank: index + 1,
       username: item.isCurrentUser ? `${item.username} (You)` : item.username,
       solved: item.solved,
