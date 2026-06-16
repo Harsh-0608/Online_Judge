@@ -861,10 +861,7 @@ const Dashboard = () => {
                         </h3>
                       </div>
                       
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', borderTop: '1px solid var(--border-glass)', paddingTop: '12px' }}>
-                        <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
-                          {getProblemAge(prob.createdAt)}
-                        </span>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '16px', borderTop: '1px solid var(--border-glass)', paddingTop: '12px' }}>
                         <Link 
                           to={`/problems/${prob.slug}`} 
                           className="solve-btn"
