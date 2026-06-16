@@ -31,6 +31,10 @@ const contestSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Problem'
   }],
+  registeredUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   participantsCount: {
     type: Number,
     default: 0

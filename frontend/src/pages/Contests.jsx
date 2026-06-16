@@ -3,6 +3,68 @@ import { Trophy, Clock, Users, ArrowLeft, ArrowRight, ShieldCheck, Flame } from 
 import { useNavigate } from 'react-router-dom';
 import { API_BASE } from '../config';
 
+// Live countdown timer component
+const CountdownTimer = ({ contest }) => {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const now = new Date();
+      const start = new Date(contest.startTime);
+      const end = new Date(contest.endTime);
+
+      if (now < start) {
+        const diff = start.getTime() - now.getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        if (days > 0) {
+          setTimeLeft(`Starts in: ${days}d ${hrs}h ${mins}m`);
+        } else {
+          setTimeLeft(`Starts in: ${hrs}h ${mins}m ${secs}s`);
+        }
+      } else if (now >= start && now <= end) {
+        const diff = end.getTime() - now.getTime();
+        const hrs = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        setTimeLeft(`Live ends in: ${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
+      } else {
+        setTimeLeft('Finished');
+      }
+    };
+
+    calculateTime();
+    const timer = setInterval(calculateTime, 1000);
+    return () => clearInterval(timer);
+  }, [contest]);
+
+  const now = new Date();
+  const start = new Date(contest.startTime);
+  const end = new Date(contest.endTime);
+  const isActive = now >= start && now <= end;
+  const isUpcoming = now < start;
+
+  return (
+    <span style={{ 
+      fontSize: '11px', 
+      fontWeight: '800', 
+      backgroundColor: isActive ? 'var(--danger-glow)' : isUpcoming ? 'var(--primary-glow)' : 'rgba(255, 255, 255, 0.03)', 
+      color: isActive ? 'var(--danger)' : isUpcoming ? 'var(--primary)' : 'var(--color-text-muted)',
+      padding: '4px 10px', 
+      borderRadius: '8px',
+      border: `1px solid ${isActive ? 'rgba(220,38,38,0.15)' : isUpcoming ? 'rgba(79,70,229,0.15)' : 'var(--border-glass)'}`,
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px'
+    }}>
+      {timeLeft}
+    </span>
+  );
+};
+
 const Contests = () => {
   const navigate = useNavigate();
   const [contests, setContests] = useState([]);
@@ -56,6 +118,40 @@ const Contests = () => {
       setError('Failed to fetch standings');
     } finally {
       setLeaderboardLoading(false);
+    }
+  };
+
+  const handleRegisterContest = async (contestId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE}/contests/${contestId}/register`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Update contests state
+        setContests(prev => prev.map(c => 
+          c._id === contestId 
+            ? { ...c, isRegistered: true, participantsCount: data.participantsCount }
+            : c
+        ));
+        
+        // If the registered contest is currently selected, update its state
+        if (selectedContest && selectedContest._id === contestId) {
+          setSelectedContest(prev => ({
+            ...prev,
+            isRegistered: true,
+            participantsCount: data.participantsCount
+          }));
+        }
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      console.error('Failed to register for contest:', err);
     }
   };
 
@@ -116,7 +212,10 @@ const Contests = () => {
           {/* Contest info card */}
           <div className="glass-card" style={{ padding: '24px 32px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
             <div>
-              <div style={{ marginBottom: '8px' }}>{getStatusBadge(selectedContest.status)}</div>
+              <div style={{ marginBottom: '8px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                {getStatusBadge(selectedContest.status)}
+                <CountdownTimer contest={selectedContest} />
+              </div>
               <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--color-text-main)', marginBottom: '4px' }}>
                 {selectedContest.title}
               </h1>
@@ -148,6 +247,19 @@ const Contests = () => {
                     <Clock size={32} color="var(--primary)" style={{ opacity: 0.4, marginBottom: '12px', margin: '0 auto' }} />
                     <h4 style={{ fontSize: '14.5px', fontWeight: '700', color: 'var(--color-text-main)', marginBottom: '6px' }}>Challenges Locked</h4>
                     <p style={{ fontSize: '12.5px', lineHeight: '1.4' }}>This contest starts in a few days. Register now to be notified when it goes live!</p>
+                  </div>
+                ) : (!selectedContest.isRegistered && selectedContest.status !== 'Completed') ? (
+                  <div style={{ textAlign: 'center', padding: '30px 20px', color: 'var(--color-text-muted)' }}>
+                    <Clock size={32} color="var(--primary)" style={{ opacity: 0.4, marginBottom: '12px', margin: '0 auto' }} filter="drop-shadow(0 2px 8px rgba(99,102,241,0.2))" />
+                    <h4 style={{ fontSize: '14.5px', fontWeight: '700', color: 'var(--color-text-main)', marginBottom: '6px' }}>Registration Required</h4>
+                    <p style={{ fontSize: '12.5px', lineHeight: '1.4', marginBottom: '16px' }}>You must join this contest to view and solve the challenges.</p>
+                    <button
+                      onClick={() => handleRegisterContest(selectedContest._id)}
+                      className="btn btn-primary"
+                      style={{ padding: '8px 18px', fontSize: '13px', fontWeight: '700' }}
+                    >
+                      Join Contest Now
+                    </button>
                   </div>
                 ) : selectedContest.problems && selectedContest.problems.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -304,12 +416,13 @@ const Contests = () => {
                   }}
                 >
                   <div style={{ flex: '1 1 500px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
                       {getStatusBadge(contest.status)}
                       <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Clock size={14} />
-                        {contest.duration}
+                        Duration: {contest.duration}
                       </span>
+                      <CountdownTimer contest={contest} />
                     </div>
                     <h3 style={{ fontSize: '18.5px', fontWeight: '800', color: 'var(--color-text-main)', marginBottom: '6px' }}>
                       {contest.title}
@@ -327,24 +440,56 @@ const Contests = () => {
                       </span>
                     </div>
 
-                    <button
-                      onClick={() => handleViewLeaderboard(contest)}
-                      className="btn btn-outline"
-                      style={{ 
-                        padding: '10px 18px', 
-                        fontSize: '13.5px', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px', 
-                        fontWeight: '700',
-                        backgroundColor: contest.status === 'Active' ? 'var(--primary-glow)' : 'transparent',
-                        borderColor: contest.status === 'Active' ? 'var(--primary)' : 'rgba(0,0,0,0.15)',
-                        color: contest.status === 'Active' ? 'var(--primary)' : 'var(--color-text-main)'
-                      }}
-                    >
-                      {contest.status === 'Completed' ? 'View Standings' : contest.status === 'Active' ? 'Enter Contest' : 'Register Now'}
-                      <ArrowRight size={14} />
-                    </button>
+                    {contest.status === 'Completed' ? (
+                      <button
+                        onClick={() => handleViewLeaderboard(contest)}
+                        className="btn btn-outline"
+                        style={{ padding: '10px 18px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}
+                      >
+                        View Standings
+                        <ArrowRight size={14} />
+                      </button>
+                    ) : contest.status === 'Active' ? (
+                      contest.isRegistered ? (
+                        <button
+                          onClick={() => handleViewLeaderboard(contest)}
+                          className="btn btn-primary"
+                          style={{ padding: '10px 18px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}
+                        >
+                          Enter Contest
+                          <ArrowRight size={14} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleRegisterContest(contest._id)}
+                          className="btn btn-outline"
+                          style={{ padding: '10px 18px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', color: 'var(--danger)', borderColor: 'var(--danger)', backgroundColor: 'var(--danger-glow)' }}
+                        >
+                          Join Contest
+                          <ArrowRight size={14} />
+                        </button>
+                      )
+                    ) : (
+                      // Upcoming contest
+                      contest.isRegistered ? (
+                        <button
+                          disabled
+                          className="btn btn-outline"
+                          style={{ padding: '10px 18px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', opacity: 0.8, cursor: 'not-allowed', color: 'var(--success)', borderColor: 'var(--success)', backgroundColor: 'var(--success-glow)' }}
+                        >
+                          ✓ Registered
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleRegisterContest(contest._id)}
+                          className="btn btn-primary"
+                          style={{ padding: '10px 18px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}
+                        >
+                          Register Now
+                          <ArrowRight size={14} />
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               ))}

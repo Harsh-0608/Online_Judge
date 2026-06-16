@@ -73,9 +73,30 @@ router.get('/leaderboard/global', protect, async (req, res) => {
 router.get('/', protect, async (req, res) => {
   try {
     const contests = await Contest.find({}).populate('problems', 'title slug difficulty');
+    
+    // Check if the current user is registered for each contest
+    const contestsWithRegStatus = contests.map(c => {
+      const isRegistered = c.registeredUsers
+        ? c.registeredUsers.some(uid => uid.toString() === req.user._id.toString())
+        : false;
+
+      return {
+        _id: c._id,
+        title: c.title,
+        description: c.description,
+        status: c.status,
+        startTime: c.startTime,
+        endTime: c.endTime,
+        duration: c.duration,
+        participantsCount: c.participantsCount,
+        problems: c.problems,
+        isRegistered
+      };
+    });
+
     res.json({
       success: true,
-      contests
+      contests: contestsWithRegStatus
     });
   } catch (error) {
     res.status(500).json({
@@ -85,76 +106,164 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+// @desc    Register / Join a contest
+// @route   POST /api/contests/:id/register
+// @access  Private
+router.post('/:id/register', protect, async (req, res) => {
+  try {
+    const contest = await Contest.findById(req.params.id);
+    if (!contest) {
+      return res.status(404).json({ success: false, message: 'Contest not found' });
+    }
+
+    // Check if already registered
+    const isAlreadyRegistered = contest.registeredUsers
+      ? contest.registeredUsers.some(uid => uid.toString() === req.user._id.toString())
+      : false;
+
+    if (isAlreadyRegistered) {
+      return res.status(400).json({ success: false, message: 'You are already registered for this contest' });
+    }
+
+    // Register user
+    if (!contest.registeredUsers) {
+      contest.registeredUsers = [];
+    }
+    contest.registeredUsers.push(req.user._id);
+    contest.participantsCount = contest.registeredUsers.length;
+    await contest.save();
+
+    res.json({
+      success: true,
+      message: 'Successfully joined the contest!',
+      participantsCount: contest.participantsCount
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to join contest: ' + error.message
+    });
+  }
+});
+
 // @desc    Get leaderboard rankings for a contest
 // @route   GET /api/contests/:id/leaderboard
 // @access  Private
 router.get('/:id/leaderboard', protect, async (req, res) => {
   try {
-    const contest = await Contest.findById(req.params.id).populate('problems');
+    const contest = await Contest.findById(req.params.id)
+      .populate('problems')
+      .populate('registeredUsers', 'username role solvedCount');
+
     if (!contest) {
       return res.status(404).json({ success: false, message: 'Contest not found' });
     }
 
     const totalProblems = contest.problems.length || 4;
-
-    // Get the current user's actual accepted submissions for the contest's problems
     const problemIds = contest.problems.map(p => p._id);
-    const userSubmissions = await Submission.find({
-      user: req.user._id,
-      problem: { $in: problemIds },
-      status: 'Accepted'
+    const registeredUsers = contest.registeredUsers || [];
+
+    const realStandingsList = [];
+
+    // Calculate score & penalty time for each real registered user
+    for (const rUser of registeredUsers) {
+      // Find accepted submissions for this contest's problems
+      const subQuery = {
+        user: rUser._id,
+        problem: { $in: problemIds },
+        status: 'Accepted',
+        createdAt: { $gte: contest.startTime }
+      };
+
+      // If completed, only count submissions before endTime
+      if (contest.status === 'Completed' || new Date() > contest.endTime) {
+        subQuery.createdAt.$lte = contest.endTime;
+      }
+
+      const acceptedSubs = await Submission.find(subQuery).sort({ createdAt: 1 });
+
+      const solvedProblems = new Set();
+      let totalPenaltyTime = 0; // in minutes
+
+      for (const sub of acceptedSubs) {
+        const problemIdStr = sub.problem.toString();
+        if (!solvedProblems.has(problemIdStr)) {
+          solvedProblems.add(problemIdStr);
+
+          // Time elapsed from contest start
+          const elapsedMs = sub.createdAt.getTime() - contest.startTime.getTime();
+          const elapsedMins = Math.max(0, Math.floor(elapsedMs / 1000 / 60));
+
+          // Incorrect attempts prior to the accepted run
+          const incorrectAttempts = await Submission.countDocuments({
+            user: rUser._id,
+            problem: sub.problem,
+            status: { $ne: 'Accepted' },
+            createdAt: { $gte: contest.startTime, $lt: sub.createdAt }
+          });
+
+          totalPenaltyTime += elapsedMins + (incorrectAttempts * 10);
+        }
+      }
+
+      const solvedCount = solvedProblems.size;
+      const points = solvedCount * 100;
+
+      let timeStr = '00:00';
+      if (solvedCount > 0) {
+        const hrs = Math.floor(totalPenaltyTime / 60);
+        const mins = totalPenaltyTime % 60;
+        timeStr = hrs > 0
+          ? `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`
+          : `${mins.toString().padStart(2, '0')}:00`;
+      }
+
+      realStandingsList.push({
+        username: rUser.username,
+        solved: solvedCount,
+        points,
+        time: timeStr,
+        penaltyRaw: totalPenaltyTime,
+        rating: rUser.role === 'admin' ? 2200 : 1200 + (rUser.solvedCount || 0) * 10,
+        isCurrentUser: rUser._id.toString() === req.user._id.toString()
+      });
+    }
+
+    // Default mock list to populate leaderboard for demo purposes
+    const mockParticipants = [
+      { username: 'binary_blitz', solved: Math.min(4, totalProblems), points: Math.min(4, totalProblems) * 100, time: '38:14', penaltyRaw: 38, rating: 2840, isCurrentUser: false },
+      { username: 'algo_master_99', solved: Math.min(3, totalProblems), points: Math.min(3, totalProblems) * 100, time: '44:50', penaltyRaw: 44, rating: 2610, isCurrentUser: false },
+      { username: 'pythonic_spark', solved: Math.max(0, totalProblems - 2), points: Math.max(0, totalProblems - 2) * 100, time: '52:12', penaltyRaw: 52, rating: 2430, isCurrentUser: false },
+      { username: 'cpp_speedrunner', solved: Math.max(0, totalProblems - 2), points: Math.max(0, totalProblems - 2) * 100, time: '65:05', penaltyRaw: 65, rating: 2110, isCurrentUser: false },
+      { username: 'recursion_ninja', solved: Math.max(0, totalProblems - 3), points: Math.max(0, totalProblems - 3) * 100, time: '45:30', penaltyRaw: 45, rating: 1980, isCurrentUser: false },
+      { username: 'stack_overflowed', solved: Math.max(0, totalProblems - 3), points: Math.max(0, totalProblems - 3) * 100, time: '58:40', penaltyRaw: 58, rating: 1840, isCurrentUser: false },
+      { username: 'null_pointer_ex', solved: 0, points: 0, time: '00:00', penaltyRaw: 999, rating: 1650, isCurrentUser: false }
+    ];
+
+    // Combine real registered users and mock users, removing duplicates
+    const combinedList = [...realStandingsList];
+    for (const mock of mockParticipants) {
+      if (!combinedList.some(r => r.username.replace(' (You)', '') === mock.username)) {
+        combinedList.push(mock);
+      }
+    }
+
+    // Sort by solved count (descending), points (descending), and penalty time (ascending)
+    combinedList.sort((a, b) => {
+      if (b.solved !== a.solved) return b.solved - a.solved;
+      if (b.points !== a.points) return b.points - a.points;
+      return a.penaltyRaw - b.penaltyRaw;
     });
 
-    const userSolvedProblemIds = new Set(userSubmissions.map(sub => sub.problem.toString()));
-    const userSolved = userSolvedProblemIds.size;
-    const userPoints = userSolved * 100;
-
-    let userRank = 5;
-    if (userSolved === totalProblems) userRank = 3;
-    else if (userSolved === totalProblems - 1) userRank = 5;
-    else if (userSolved === totalProblems - 2) userRank = 6;
-    else if (userSolved > 0) userRank = 7;
-    else userRank = 8;
-
-    const mockStandings = [
-      { rank: 1, username: 'binary_blitz', solved: totalProblems, points: totalProblems * 100, time: '38:14', rating: 2840 },
-      { rank: 2, username: 'algo_master_99', solved: totalProblems, points: totalProblems * 100 - 10, time: '44:50', rating: 2610 },
-      { rank: 3, username: 'pythonic_spark', solved: totalProblems, points: totalProblems * 100 - 20, time: '52:12', rating: 2430 },
-      { rank: 4, username: 'cpp_speedrunner', solved: Math.max(0, totalProblems - 1), points: Math.max(0, totalProblems - 1) * 100, time: '21:05', rating: 2510 }
-    ];
-
-    const otherParticipants = [
-      { rank: 5, username: 'recursion_ninja', solved: Math.max(0, totalProblems - 1), points: Math.max(0, totalProblems - 1) * 100 - 10, time: '45:30', rating: 1980 },
-      { rank: 6, username: 'stack_overflowed', solved: Math.max(0, totalProblems - 2), points: Math.max(0, totalProblems - 2) * 100, time: '18:40', rating: 1840 },
-      { rank: 7, username: 'null_pointer_ex', solved: Math.max(0, totalProblems - 3), points: Math.max(0, totalProblems - 3) * 100, time: '12:15', rating: 1650 },
-      { rank: 8, username: 'junior_coder_1', solved: 0, points: 0, time: '00:00', rating: 1200 }
-    ];
-
-    const allParticipants = [
-      ...mockStandings,
-      ...otherParticipants
-    ];
-
-    const userStanding = {
-      username: `${req.user.username} (You)`,
-      solved: userSolved,
-      points: userPoints,
-      time: userSolved > 0 ? `${12 + userSolved * 9}:42` : '00:00',
-      rating: req.user.role === 'admin' ? 2200 : 1500 + userSolved * 150,
-      isCurrentUser: true
-    };
-
-    const combined = [...allParticipants];
-    combined.splice(userRank - 1, 0, userStanding);
-
-    const standings = combined.slice(0, 8).map((item, index) => ({
+    // Assign dynamic ranks
+    const standings = combinedList.map((item, index) => ({
       rank: index + 1,
-      username: item.username,
+      username: item.isCurrentUser ? `${item.username} (You)` : item.username,
       solved: item.solved,
       points: item.points,
       time: item.time,
       rating: item.rating,
-      isCurrentUser: !!item.isCurrentUser
+      isCurrentUser: item.isCurrentUser
     }));
 
     res.json({
