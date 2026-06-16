@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [recentSubmissions, setRecentSubmissions] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [stats, setStats] = useState({ timeEfficiency: 0, spaceEfficiency: 0, solvedCount: 0 });
+  const [recommendedProblems, setRecommendedProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [allSubmissions, setAllSubmissions] = useState([]);
@@ -43,6 +44,11 @@ const Dashboard = () => {
         });
         const statsData = await statsRes.json();
 
+        const recRes = await fetch(`${API_BASE}/problems/recommendations`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const recData = await recRes.json();
+
         if (probData.success && subData.success) {
           setProblems(probData.problems);
           setRecentSubmissions(subData.submissions);
@@ -55,6 +61,12 @@ const Dashboard = () => {
               spaceEfficiency: statsData.spaceEfficiency,
               solvedCount: statsData.solvedCount
             });
+          }
+          if (recData.success) {
+            setRecommendedProblems(recData.recommended);
+          } else {
+            const unsolved = probData.problems.filter(p => !p.isSolved);
+            setRecommendedProblems(unsolved.slice(0, 3));
           }
         } else {
           setError(probData.message || subData.message);
@@ -802,10 +814,9 @@ const Dashboard = () => {
               </h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
                 {(() => {
-                  const unsolved = problems.filter(p => !p.isSolved);
-                  const recommended = unsolved.length >= 3 
-                    ? unsolved.slice(0, 3)
-                    : [...unsolved, ...problems.filter(p => p.isSolved).slice(0, 3 - unsolved.length)].slice(0, 3);
+                  const recommended = recommendedProblems && recommendedProblems.length > 0
+                    ? recommendedProblems
+                    : problems.filter(p => !p.isSolved).slice(0, 3);
 
                   if (recommended.length === 0) {
                     return (

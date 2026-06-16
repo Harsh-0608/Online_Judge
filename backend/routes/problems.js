@@ -207,6 +207,183 @@ router.get('/submissions/:id', protect, async (req, res) => {
 });
 
 
+/**
+ * @route   GET /api/problems/recommendations
+ * @desc    Get AI-curated recommended challenges based on user's recent submissions
+ * @access  Private
+ */
+router.get('/recommendations', protect, async (req, res) => {
+  try {
+    const Problem = require('../models/Problem');
+    const Submission = require('../models/Submission');
+
+    // 1. Fetch user's recent Accepted submissions
+    const recentAccepted = await Submission.find({
+      user: req.user._id,
+      status: 'Accepted'
+    })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .populate('problem', 'title difficulty tags approach');
+
+    // Fetch all problems
+    const allProblems = await Problem.find({}).select('title slug difficulty tags');
+
+    // Determine solved problem IDs
+    const solvedProblemIds = await Submission.distinct('problem', {
+      user: req.user._id,
+      status: 'Accepted'
+    });
+    const solvedProblemIdStrs = solvedProblemIds.map(id => id.toString());
+
+    // Unsolved problems
+    const unsolvedProblems = allProblems.filter(p => !solvedProblemIdStrs.includes(p._id.toString()));
+
+    // Fallback: If no solved problems or no unsolved problems left
+    if (recentAccepted.length === 0 || unsolvedProblems.length === 0) {
+      const easyProblems = allProblems
+        .filter(p => p.difficulty === 'Easy' && !solvedProblemIdStrs.includes(p._id.toString()))
+        .slice(0, 3);
+
+      let fallbackRecommended = easyProblems;
+      if (fallbackRecommended.length < 3) {
+        const extraUnsolved = unsolvedProblems
+          .filter(p => !fallbackRecommended.some(r => r._id.toString() === p._id.toString()))
+          .slice(0, 3 - fallbackRecommended.length);
+        fallbackRecommended = [...fallbackRecommended, ...extraUnsolved];
+      }
+      
+      const fullFallback = await Problem.find({
+        _id: { $in: fallbackRecommended.map(p => p._id) }
+      });
+
+      return res.json({
+        success: true,
+        recommended: fullFallback.slice(0, 3)
+      });
+    }
+
+    // Call Groq API to pick 3 recommended problems
+    const apiKey = process.env.XAI_API_KEY || process.env.GROK_API_KEY;
+    if (!apiKey) {
+      const offlineRecs = unsolvedProblems.slice(0, 3);
+      const fullOffline = await Problem.find({
+        _id: { $in: offlineRecs.map(p => p._id) }
+      });
+      return res.json({
+        success: true,
+        recommended: fullOffline
+      });
+    }
+
+    const isGroq = apiKey.startsWith('gsk_');
+    const endpoint = isGroq ? 'https://api.groq.com/openai/v1/chat/completions' : 'https://api.x.ai/v1/chat/completions';
+    let model = process.env.XAI_MODEL || process.env.GROK_MODEL;
+    if (isGroq && (!model || model.toLowerCase().includes('grok'))) {
+      model = 'llama-3.3-70b-versatile';
+    }
+
+    const solvedListInfo = recentAccepted.map(sub => {
+      const p = sub.problem;
+      if (!p) return null;
+      return {
+        title: p.title,
+        difficulty: p.difficulty,
+        tags: p.tags,
+        userApproach: sub.approach || 'Unknown'
+      };
+    }).filter(Boolean);
+
+    const candidatesList = unsolvedProblems.map(p => ({
+      id: p._id.toString(),
+      title: p.title,
+      difficulty: p.difficulty,
+      tags: p.tags
+    }));
+
+    const promptBody = {
+      model: model,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an AI algorithm advisor. Your task is to recommend 3 coding challenges from a list of candidates for a user, based on their recently solved problems.\n' +
+                   'Rules:\n' +
+                   '1. Analyze what the user recently solved (topics, difficulty, and algorithmic approaches).\n' +
+                   '2. Select exactly 3 candidate problems from the provided list that are slightly harder/advanced (e.g. progressive difficulty: if solved Easy, suggest Medium; if solved Medium, suggest Hard) or explore similar algorithmic topics/tags (e.g. two pointers, dynamic programming, sorting).\n' +
+                   '3. If no tougher candidates are available, suggest candidates that use similar approaches/tags.\n' +
+                   '4. Return JSON object with a single key "recommendedIds" which is an array of exactly 3 strings representing the matching candidate IDs from the candidate list: { "recommendedIds": ["id1", "id2", "id3"] }.'
+        },
+        {
+          role: 'user',
+          content: `Recently Solved Problems:\n${JSON.stringify(solvedListInfo, null, 2)}\n\nCandidate Problems:\n${JSON.stringify(candidatesList.slice(0, 100), null, 2)}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.3
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    let recommendedIds = [];
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(promptBody),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const responseData = await response.json();
+        const contentObj = JSON.parse(responseData.choices[0].message.content);
+        recommendedIds = contentObj.recommendedIds || [];
+      }
+    } catch (apiErr) {
+      clearTimeout(timeoutId);
+      console.error('[Recommendation Engine] API call failed, falling back to static filter:', apiErr.message);
+    }
+
+    let recommended = [];
+    if (recommendedIds && recommendedIds.length > 0) {
+      recommended = allProblems.filter(p => recommendedIds.includes(p._id.toString()));
+    }
+
+    if (recommended.length < 3) {
+      const alreadyPickedIds = recommended.map(p => p._id.toString());
+      const remainingUnsolved = unsolvedProblems.filter(p => !alreadyPickedIds.includes(p._id.toString()));
+      
+      const harderCandidates = remainingUnsolved.filter(p => p.difficulty === 'Medium' || p.difficulty === 'Hard');
+      const fallbackPool = harderCandidates.length > 0 ? harderCandidates : remainingUnsolved;
+      
+      const padding = fallbackPool.slice(0, 3 - recommended.length);
+      recommended = [...recommended, ...padding];
+    }
+
+    recommended = recommended.slice(0, 3);
+
+    const fullProblems = await Problem.find({
+      _id: { $in: recommended.map(p => p._id) }
+    });
+
+    res.json({
+      success: true,
+      recommended: fullProblems
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch recommendations: ' + error.message
+    });
+  }
+});
+
+
 router.get('/:slug', protect, async (req, res) => {
   try {
     const problem = await Problem.findOne({ slug: req.params.slug });
