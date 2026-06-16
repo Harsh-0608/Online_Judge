@@ -403,6 +403,29 @@ router.post('/:slug/submit', protect, async (req, res) => {
     // Scale passed cases
     let finalPassedCount = result.passedCount !== undefined ? result.passedCount : 0;
     let finalTotalCount = originalCount;
+
+    // Override TLE for Easy/Medium problems to "Accepted"
+    let wasTleOverridden = false;
+    if ((problem.difficulty === 'Easy' || problem.difficulty === 'Medium') && result.status === 'Time Limit Exceeded') {
+      result.status = 'Accepted';
+      finalPassedCount = originalCount;
+      wasTleOverridden = true;
+
+      // Update test case results to reflect overridden Accepted status
+      if (result.testCaseResults && result.testCaseResults.length > 0) {
+        result.testCaseResults = result.testCaseResults.map(tc => {
+          if (tc.status === 'Time Limit Exceeded') {
+            return {
+              ...tc,
+              status: 'Accepted',
+              actual: tc.actual === 'Time Limit Exceeded' ? 'Success (TLE Overridden for Easy/Medium)' : tc.actual
+            };
+          }
+          return tc;
+        });
+      }
+    }
+
     if (result.status === 'Accepted') {
       finalPassedCount = originalCount;
     } else if (result.passedCount !== undefined && result.totalCount !== undefined && result.totalCount > 0) {
@@ -415,6 +438,10 @@ router.post('/:slug/submit', protect, async (req, res) => {
       complexity = await analyzeComplexity(code, language, problem.functionName);
     } catch (analysisErr) {
       console.error('Complexity analyzer execution failed:', analysisErr.message);
+    }
+
+    if (wasTleOverridden) {
+      complexity.insight = `[LIMIT NOTICE] Your solution was accepted, but it timed out on larger test cases (exceeded ${problem.timeLimit}ms limit) because it uses a sub-optimal approach. We've accepted it since it is an Easy/Medium difficulty problem, but you should optimize it!\n\n` + complexity.insight;
     }
 
     const submission = new Submission({

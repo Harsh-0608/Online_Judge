@@ -23,6 +23,8 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/online-judge
       - JWT_SECRET=supersecretjwtkey123!@#
       - JWT_EXPIRES_IN=7d
+      - XAI_API_KEY=${XAI_API_KEY}
+      - XAI_MODEL=${XAI_MODEL}
     ports:
       - "5000:5000" # Expose for direct API testing if needed, though traffic routes through frontend proxy
 
