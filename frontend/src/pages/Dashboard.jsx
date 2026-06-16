@@ -375,6 +375,86 @@ const Dashboard = () => {
     );
   }
 
+  // If URL includes view=leaderboard, render the global standings of all users on the platform
+  if (view === 'leaderboard') {
+    return (
+      <div style={{ padding: '36px 40px', maxWidth: '900px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
+        {/* Header Block */}
+        <div className="glass-card animate-fade-in" style={{
+          marginBottom: '28px', padding: '24px 32px',
+          background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(12,15,26,0.6) 60%)',
+          borderLeft: '4px solid var(--primary)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px'
+        }}>
+          <div>
+            <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--primary-hover)' }}>
+              Developer Rankings
+            </span>
+            <h1 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--color-text-main)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Trophy size={26} color="var(--primary)" style={{ filter: 'drop-shadow(0 0 6px rgba(99,102,241,0.3))' }} />
+              Global Leaderboard
+            </h1>
+          </div>
+          <Link to="/dashboard" className="btn btn-outline" style={{ fontSize: '13px', padding: '8px 18px' }}>
+            Back to Dashboard
+          </Link>
+        </div>
+
+        {/* Standings List */}
+        <div className="glass-card animate-fade-in" style={{ padding: '0', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border-glass)', backgroundColor: 'rgba(0, 0, 0, 0.02)', color: 'var(--color-text-muted)' }}>
+                <th style={{ padding: '16px 24px', fontWeight: '800', width: '80px', textAlign: 'center' }}>Rank</th>
+                <th style={{ padding: '16px 24px', fontWeight: '800' }}>User Account</th>
+                <th style={{ padding: '16px 24px', fontWeight: '800', textAlign: 'center', width: '160px' }}>Problems Solved</th>
+                <th style={{ padding: '16px 24px', fontWeight: '800', textAlign: 'center', width: '160px' }}>Contest Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaderboard.map((row) => (
+                <tr 
+                  key={row.rank} 
+                  style={{ 
+                    borderBottom: '1px solid var(--border-glass)',
+                    backgroundColor: row.isCurrentUser ? 'rgba(99, 102, 241, 0.04)' : 'transparent',
+                    fontWeight: row.isCurrentUser ? '700' : 'normal'
+                  }}
+                >
+                  <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '800' }}>
+                    {row.rank === 1 ? (
+                      <Trophy size={18} color="#d97706" style={{ filter: 'drop-shadow(0 2px 4px rgba(217,119,6,0.3))' }} />
+                    ) : row.rank === 2 ? (
+                      <Trophy size={18} color="#94a3b8" />
+                    ) : row.rank === 3 ? (
+                      <Trophy size={18} color="#b45309" />
+                    ) : (
+                      <span>{row.rank}</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '16px 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {row.isCurrentUser && <Flame size={15} color="var(--primary)" />}
+                      <span style={{ color: row.isCurrentUser ? 'var(--primary)' : 'var(--color-text-main)' }}>
+                        {row.username}
+                      </span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '700', color: 'var(--success)' }}>
+                    {row.solved} solved
+                  </td>
+                  <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '800', color: '#f59e0b' }}>
+                    {row.rating}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
   // If URL includes view=profile, render the full detailed profile dashboard
   if (view === 'profile') {
     const solvedProblems = problems.filter(p => p.isSolved);
@@ -566,6 +646,13 @@ const Dashboard = () => {
                 <div>
                   <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Total Solved</span>
                   <span style={{ color: 'var(--success)', fontWeight: '800' }}>{solvedProblemsCount} / {totalProblemsCount} ({solvePercent}%)</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Trophy size={16} color="var(--color-text-muted)" />
+                <div>
+                  <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Contest Rating</span>
+                  <span style={{ color: '#f59e0b', fontWeight: '850', fontSize: '15px' }}>{user.contestRating || 1500}</span>
                 </div>
               </div>
             </div>
@@ -892,7 +979,7 @@ const Dashboard = () => {
               </h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {leaderboard.slice(0, 5).map((participant, idx) => (
+                {leaderboard.slice(0, 3).map((participant, idx) => (
                   <div key={idx} style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -922,8 +1009,9 @@ const Dashboard = () => {
                 ))}
               </div>
               
-              <Link to="/contests" className="btn btn-outline" style={{ width: '100%', fontSize: '12px', padding: '6px', marginTop: '12px', justifyContent: 'center' }}>
-                View Standings History
+              <Link to="/dashboard?view=leaderboard" className="btn btn-outline" style={{ width: '100%', fontSize: '12px', padding: '6px', marginTop: '12px', justifyContent: 'center', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <Award size={14} color="var(--primary)" />
+                Check All Users Standings
               </Link>
             </div>
 

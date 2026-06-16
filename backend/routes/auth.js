@@ -48,7 +48,8 @@ router.post('/register', async (req, res) => {
           username: user.username,
           email: user.email,
           role: user.role,
-          solvedCount: user.solvedCount
+          solvedCount: user.solvedCount,
+          contestRating: 1500
         }
       });
     } else {
@@ -82,6 +83,9 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
+    const { getUserContestRating } = require('../utils/ratingCalculator');
+    const contestRating = await getUserContestRating(user._id);
+
     return res.json({
       success: true,
       token: generateToken(user._id),
@@ -90,7 +94,8 @@ router.post('/login', async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        solvedCount: user.solvedCount
+        solvedCount: user.solvedCount,
+        contestRating
       }
     });
   } catch (error) {
@@ -106,9 +111,15 @@ router.post('/login', async (req, res) => {
  */
 router.get('/me', protect, async (req, res) => {
   try {
+    const { getUserContestRating } = require('../utils/ratingCalculator');
+    const contestRating = await getUserContestRating(req.user._id);
+    
+    const userObj = req.user.toObject();
+    userObj.contestRating = contestRating;
+
     return res.json({
       success: true,
-      user: req.user
+      user: userObj
     });
   } catch (error) {
     console.error('Auth Profile Retrieval Error:', error.message);

@@ -430,7 +430,7 @@ const Problems = () => {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {leaderboard.slice(0, 5).map((participant) => (
+                 {leaderboard.slice(0, 3).map((participant) => (
                   <div key={participant.rank} style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -461,8 +461,9 @@ const Problems = () => {
               </div>
             )}
             
-            <Link to="/contests" className="btn btn-outline" style={{ width: '100%', fontSize: '12px', padding: '6px', marginTop: '12px', justifyContent: 'center' }}>
-              View Standings History
+            <Link to="/dashboard?view=leaderboard" className="btn btn-outline" style={{ width: '100%', fontSize: '12px', padding: '6px', marginTop: '12px', justifyContent: 'center', display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <Trophy size={14} color="var(--primary)" />
+              Check All Users Standings
             </Link>
           </div>
 

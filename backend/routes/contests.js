@@ -13,23 +13,25 @@ router.get('/leaderboard/global', protect, async (req, res) => {
   try {
     const topUsers = await User.find({})
       .sort({ solvedCount: -1 })
-      .limit(10)
       .select('username solvedCount role');
 
+    const { getUserContestRating } = require('../utils/ratingCalculator');
+
     // Build standings
-    const standings = topUsers.map((u, index) => {
+    const standings = [];
+    for (let index = 0; index < topUsers.length; index++) {
+      const u = topUsers[index];
       const isCurrentUser = u._id.toString() === req.user._id.toString();
-      return {
+      const contestRating = await getUserContestRating(u._id);
+
+      standings.push({
         rank: index + 1,
         username: isCurrentUser ? `${u.username} (You)` : u.username,
         solved: u.solvedCount || 0,
-        rating: u.role === 'admin' ? 2200 : 1200 + (u.solvedCount || 0) * 150,
+        rating: contestRating,
         isCurrentUser
-      };
-    });
-
-    // No mock users mixed in - only real users are shown
-
+      });
+    }
 
     res.json({
       success: true,
@@ -194,13 +196,16 @@ router.get('/:id/leaderboard', protect, async (req, res) => {
           : `${mins.toString().padStart(2, '0')}:00`;
       }
 
+      const { getUserContestRating } = require('../utils/ratingCalculator');
+      const contestRating = await getUserContestRating(rUser._id);
+
       realStandingsList.push({
         username: rUser.username,
         solved: solvedCount,
         points,
         time: timeStr,
         penaltyRaw: totalPenaltyTime,
-        rating: rUser.role === 'admin' ? 2200 : 1200 + (rUser.solvedCount || 0) * 10,
+        rating: contestRating,
         isCurrentUser: rUser._id.toString() === req.user._id.toString()
       });
     }
