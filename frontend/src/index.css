@@ -385,25 +385,33 @@ body {
   font-weight: 500;
 }
 
-/* Auth Note Box styling */
-.auth-note-box {
-  background-color: rgba(99, 102, 241, 0.05);
-  border: 1px solid rgba(99, 102, 241, 0.15);
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: rgba(165, 180, 252, 0.9);
+/* Auth Quote styling */
+.auth-quote {
+  border-left: 2px solid var(--primary);
+  padding: 4px 0 4px 14px;
+  margin: 8px 0 24px 0;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13.5px;
-  font-weight: 500;
-  margin-bottom: 20px;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  flex-direction: column;
+  gap: 4px;
 }
 
-.auth-note-icon {
+.quote-text {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+  text-align: left;
+}
+
+.quote-author {
+  font-size: 11px;
   color: var(--primary);
-  flex-shrink: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+  text-align: left;
 }
 
 /* Divider grid */

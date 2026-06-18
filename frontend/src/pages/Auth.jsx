@@ -316,9 +316,9 @@ const Auth = () => {
             </div>
           )}
 
-          <div className="auth-note-box animate-fade-in">
-            <ShieldCheck size={16} className="auth-note-icon" />
-            <span>Secure password-based authentication is enabled.</span>
+          <div className="auth-quote animate-fade-in">
+            <p className="quote-text">"The only way to learn a new programming language is by writing programs in it."</p>
+            <p className="quote-author">— Dennis Ritchie</p>
           </div>
 
           <form onSubmit={handleSubmit}>
