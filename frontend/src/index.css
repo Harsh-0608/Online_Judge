@@ -266,10 +266,10 @@ body {
 
 /* Right form side */
 .form-side {
-  padding: 40px 48px;
+  padding: 48px 48px 40px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 /* Sliding pill tab selector */
