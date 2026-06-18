@@ -284,6 +284,11 @@ const Auth = () => {
 
         {/* Right Side: Clean Login Form */}
         <div className="form-side">
+          <div className="auth-quote animate-fade-in">
+            <p className="quote-text">"The only way to learn a new programming language is by writing programs in it."</p>
+            <p className="quote-author">— Dennis Ritchie</p>
+          </div>
+
           {/* Sliding Pill Tab Switcher */}
           <div className="tab-selector">
             <button 
@@ -316,10 +321,6 @@ const Auth = () => {
             </div>
           )}
 
-          <div className="auth-quote animate-fade-in">
-            <p className="quote-text">"The only way to learn a new programming language is by writing programs in it."</p>
-            <p className="quote-author">— Dennis Ritchie</p>
-          </div>
 
           <form onSubmit={handleSubmit}>
             {!isLogin && (
