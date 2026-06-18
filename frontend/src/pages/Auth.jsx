@@ -284,6 +284,11 @@ const Auth = () => {
 
         {/* Right Side: Clean Login Form */}
         <div className="form-side">
+          <div className="security-notice animate-fade-in">
+            <ShieldCheck size={14} className="security-notice-icon" />
+            <span>Secure Password Authentication Enabled</span>
+          </div>
+
           <div className="auth-quote animate-fade-in">
             <p className="quote-text">"The only way to learn a new programming language is by writing programs in it."</p>
             <p className="quote-author">— Dennis Ritchie</p>

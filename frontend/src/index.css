@@ -385,6 +385,25 @@ body {
   font-weight: 500;
 }
 
+/* Security Notice styling */
+.security-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #10b981; /* secure green */
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: left;
+}
+
+.security-notice-icon {
+  flex-shrink: 0;
+  color: #10b981;
+}
+
 /* Auth Quote styling */
 .auth-quote {
   border-left: 2px solid var(--primary);
