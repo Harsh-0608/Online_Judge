@@ -316,7 +316,10 @@ const Auth = () => {
             </div>
           )}
 
-
+          <div className="auth-note-box animate-fade-in">
+            <ShieldCheck size={16} className="auth-note-icon" />
+            <span>Secure password-based authentication is enabled.</span>
+          </div>
 
           <form onSubmit={handleSubmit}>
             {!isLogin && (

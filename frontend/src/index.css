@@ -385,29 +385,25 @@ body {
   font-weight: 500;
 }
 
-/* Prominent Google button */
-.google-btn-full {
-  background-color: rgba(12, 15, 26, 0.65);
-  border: 1px solid var(--border-glass);
+/* Auth Note Box styling */
+.auth-note-box {
+  background-color: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.15);
   border-radius: 8px;
-  padding: 12px;
-  color: var(--color-text-main);
-  cursor: pointer;
+  padding: 10px 14px;
+  color: rgba(165, 180, 252, 0.9);
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
-  font-family: var(--font-sans);
-  font-size: 14.5px;
-  font-weight: 600;
-  width: 100%;
-  transition: var(--transition-smooth);
+  font-size: 13.5px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
-.google-btn-full:hover {
-  background-color: rgba(12, 15, 26, 0.9);
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+.auth-note-icon {
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 /* Divider grid */
