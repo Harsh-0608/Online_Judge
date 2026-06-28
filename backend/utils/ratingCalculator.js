@@ -1,20 +1,41 @@
 const Contest = require('../models/Contest');
 const Submission = require('../models/Submission');
-const Problem = require('../models/Problem');
 
 /**
  * Calculates a user's contest rating based on their submission performance in completed contests.
- * Every user starts at a baseline of 1500.
+ * If a user has not solved any problems in completed contests, their rating is 0.
+ * Otherwise, every participating user starts at a baseline of 1500.
  */
 async function getUserContestRating(userId) {
-  let rating = 1500;
-
   try {
     // Find all completed contests where the user was registered
     const contests = await Contest.find({
       registeredUsers: userId,
       status: 'Completed'
     }).populate('problems');
+
+    if (contests.length === 0) {
+      return 0;
+    }
+
+    // Check if the user has solved at least one problem in any completed contest
+    let totalSolvedInContests = 0;
+    for (const contest of contests) {
+      const problemIds = contest.problems.map(p => p._id);
+      const acceptedCount = await Submission.countDocuments({
+        user: userId,
+        problem: { $in: problemIds },
+        status: 'Accepted',
+        createdAt: { $gte: contest.startTime, $lte: contest.endTime }
+      });
+      totalSolvedInContests += acceptedCount;
+    }
+
+    if (totalSolvedInContests === 0) {
+      return 0;
+    }
+
+    let rating = 1500;
 
     for (const contest of contests) {
       const problemIds = contest.problems.map(p => p._id);
@@ -113,40 +134,12 @@ async function getUserContestRating(userId) {
       }
     }
 
-    // Practice bonus based on all unique problems solved outside or inside contests
-    const userSubs = await Submission.find({
-      user: userId,
-      status: 'Accepted'
-    }).populate('problem');
-
-    const solvedProblemsUnique = new Map();
-    for (const sub of userSubs) {
-      if (sub.problem && !solvedProblemsUnique.has(sub.problem._id.toString())) {
-        solvedProblemsUnique.set(sub.problem._id.toString(), sub.problem);
-      }
-    }
-
-    let practiceBonus = 0;
-    for (const problem of solvedProblemsUnique.values()) {
-      if (problem.difficulty === 'Easy') {
-        practiceBonus += 20;
-      } else if (problem.difficulty === 'Medium') {
-        practiceBonus += 50;
-      } else if (problem.difficulty === 'Hard') {
-        practiceBonus += 100;
-      } else {
-        practiceBonus += 20;
-      }
-    }
-    
-    rating += practiceBonus;
-
+    // Baseline rating floor is 1000, ceiling is 3000
+    return Math.max(1000, Math.min(3000, rating));
   } catch (err) {
     console.error('Error calculating rating for user:', userId, err.message);
+    return 0;
   }
-
-  // Baseline rating floor is 1000, ceiling is 3000
-  return Math.max(1000, Math.min(3000, rating));
 }
 
 module.exports = { getUserContestRating };
