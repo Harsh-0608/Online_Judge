@@ -45,6 +45,56 @@ router.get('/leaderboard/global', protect, async (req, res) => {
   }
 });
 
+// @desc    Get global leaderboard rankings based on contest rating
+// @route   GET /api/contests/leaderboard/rating
+// @access  Private
+router.get('/leaderboard/rating', protect, async (req, res) => {
+  try {
+    const allUsers = await User.find({}).select('username solvedCount role');
+    const { getUserContestRating } = require('../utils/ratingCalculator');
+
+    const standings = [];
+    for (const u of allUsers) {
+      const contestRating = await getUserContestRating(u._id);
+      standings.push({
+        username: u.username,
+        userId: u._id.toString(),
+        solved: u.solvedCount || 0,
+        rating: contestRating,
+        role: u.role
+      });
+    }
+
+    // Sort by rating (descending), then by solved count (descending)
+    standings.sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      return b.solved - a.solved;
+    });
+
+    // Add rank and format username
+    const formattedStandings = standings.map((item, index) => {
+      const isCurrentUser = item.userId === req.user._id.toString();
+      return {
+        rank: index + 1,
+        username: isCurrentUser ? `${item.username} (You)` : item.username,
+        solved: item.solved,
+        rating: item.rating,
+        isCurrentUser
+      };
+    });
+
+    res.json({
+      success: true,
+      standings: formattedStandings
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch rating leaderboard: ' + error.message
+    });
+  }
+});
+
 // @desc    Get all active, upcoming, and past contests
 // @route   GET /api/contests
 // @access  Private

@@ -1,5 +1,6 @@
 const Contest = require('../models/Contest');
 const Submission = require('../models/Submission');
+const Problem = require('../models/Problem');
 
 /**
  * Calculates a user's contest rating based on their submission performance in completed contests.
@@ -111,6 +112,35 @@ async function getUserContestRating(userId) {
         }
       }
     }
+
+    // Practice bonus based on all unique problems solved outside or inside contests
+    const userSubs = await Submission.find({
+      user: userId,
+      status: 'Accepted'
+    }).populate('problem');
+
+    const solvedProblemsUnique = new Map();
+    for (const sub of userSubs) {
+      if (sub.problem && !solvedProblemsUnique.has(sub.problem._id.toString())) {
+        solvedProblemsUnique.set(sub.problem._id.toString(), sub.problem);
+      }
+    }
+
+    let practiceBonus = 0;
+    for (const problem of solvedProblemsUnique.values()) {
+      if (problem.difficulty === 'Easy') {
+        practiceBonus += 20;
+      } else if (problem.difficulty === 'Medium') {
+        practiceBonus += 50;
+      } else if (problem.difficulty === 'Hard') {
+        practiceBonus += 100;
+      } else {
+        practiceBonus += 20;
+      }
+    }
+    
+    rating += practiceBonus;
+
   } catch (err) {
     console.error('Error calculating rating for user:', userId, err.message);
   }

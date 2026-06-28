@@ -15,9 +15,37 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [allSubmissions, setAllSubmissions] = useState([]);
   const [loadingAllSubmissions, setLoadingAllSubmissions] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const view = searchParams.get('view');
+  const leaderboardTab = searchParams.get('tab') === 'rating' ? 'rating' : 'practice';
+
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [loadingLB, setLoadingLB] = useState(false);
+
+  useEffect(() => {
+    if (view === 'leaderboard') {
+      const fetchLeaderboard = async () => {
+        setLoadingLB(true);
+        try {
+          const token = localStorage.getItem('token');
+          const endpoint = leaderboardTab === 'rating' ? 'rating' : 'global';
+          const res = await fetch(`${API_BASE}/contests/leaderboard/${endpoint}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (data.success) {
+            setLeaderboardData(data.standings);
+          }
+        } catch (err) {
+          console.error('Failed to fetch leaderboard:', err);
+        } finally {
+          setLoadingLB(false);
+        }
+      };
+      fetchLeaderboard();
+    }
+  }, [view, leaderboardTab]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -404,12 +432,30 @@ const Dashboard = () => {
             </span>
             <h1 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--color-text-main)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Trophy size={26} color="var(--primary)" style={{ filter: 'drop-shadow(0 0 6px rgba(99,102,241,0.3))' }} />
-              Global Leaderboard
+              {leaderboardTab === 'rating' ? 'Contest Rating Leaderboard' : 'Practice Leaderboard'}
             </h1>
           </div>
           <Link to="/dashboard" className="btn btn-outline" style={{ fontSize: '13px', padding: '8px 18px' }}>
             Back to Dashboard
           </Link>
+        </div>
+
+        {/* Tab Toggle Navigation */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+          <button 
+            className={`btn ${leaderboardTab === 'practice' ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => setSearchParams({ view: 'leaderboard', tab: 'practice' })}
+            style={{ fontSize: '13px', padding: '8px 20px', borderRadius: '8px' }}
+          >
+            Practice Standings
+          </button>
+          <button 
+            className={`btn ${leaderboardTab === 'rating' ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => setSearchParams({ view: 'leaderboard', tab: 'rating' })}
+            style={{ fontSize: '13px', padding: '8px 20px', borderRadius: '8px' }}
+          >
+            Contest Ratings
+          </button>
         </div>
 
         {/* Standings List */}
@@ -419,47 +465,78 @@ const Dashboard = () => {
               <tr style={{ borderBottom: '1px solid var(--border-glass)', backgroundColor: 'rgba(0, 0, 0, 0.02)', color: 'var(--color-text-muted)' }}>
                 <th style={{ padding: '16px 24px', fontWeight: '800', width: '80px', textAlign: 'center' }}>Rank</th>
                 <th style={{ padding: '16px 24px', fontWeight: '800' }}>User Account</th>
-                <th style={{ padding: '16px 24px', fontWeight: '800', textAlign: 'center', width: '160px' }}>Problems Solved</th>
-                <th style={{ padding: '16px 24px', fontWeight: '800', textAlign: 'center', width: '160px' }}>Contest Rating</th>
+                {leaderboardTab === 'rating' ? (
+                  <>
+                    <th style={{ padding: '16px 24px', fontWeight: '800', textAlign: 'center', width: '160px' }}>Contest Rating</th>
+                    <th style={{ padding: '16px 24px', fontWeight: '800', textAlign: 'center', width: '160px' }}>Problems Solved</th>
+                  </>
+                ) : (
+                  <th style={{ padding: '16px 24px', fontWeight: '800', textAlign: 'center', width: '160px' }}>Problems Solved</th>
+                )}
               </tr>
             </thead>
             <tbody>
-              {leaderboard.map((row) => (
-                <tr 
-                  key={row.rank} 
-                  style={{ 
-                    borderBottom: '1px solid var(--border-glass)',
-                    backgroundColor: row.isCurrentUser ? 'rgba(99, 102, 241, 0.04)' : 'transparent',
-                    fontWeight: row.isCurrentUser ? '700' : 'normal'
-                  }}
-                >
-                  <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '800' }}>
-                    {row.rank === 1 ? (
-                      <Trophy size={18} color="#d97706" style={{ filter: 'drop-shadow(0 2px 4px rgba(217,119,6,0.3))' }} />
-                    ) : row.rank === 2 ? (
-                      <Trophy size={18} color="#94a3b8" />
-                    ) : row.rank === 3 ? (
-                      <Trophy size={18} color="#b45309" />
-                    ) : (
-                      <span>{row.rank}</span>
-                    )}
-                  </td>
-                  <td style={{ padding: '16px 24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {row.isCurrentUser && <Flame size={15} color="var(--primary)" />}
-                      <span style={{ color: row.isCurrentUser ? 'var(--primary)' : 'var(--color-text-main)' }}>
-                        {row.username}
-                      </span>
+              {loadingLB ? (
+                <tr>
+                  <td colSpan={leaderboardTab === 'rating' ? 4 : 3} style={{ textAlign: 'center', padding: '36px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '32px', height: '32px', border: '3px solid var(--border-glass)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                      <span style={{ color: 'var(--color-text-muted)', fontWeight: '600' }}>Loading standings...</span>
                     </div>
                   </td>
-                  <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '700', color: 'var(--success)' }}>
-                    {row.solved} solved
-                  </td>
-                  <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '800', color: '#f59e0b' }}>
-                    {row.rating}
+                </tr>
+              ) : leaderboardData.length === 0 ? (
+                <tr>
+                  <td colSpan={leaderboardTab === 'rating' ? 4 : 3} style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-muted)' }}>
+                    No users found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                leaderboardData.map((row) => (
+                  <tr 
+                    key={row.rank} 
+                    style={{ 
+                      borderBottom: '1px solid var(--border-glass)',
+                      backgroundColor: row.isCurrentUser ? 'rgba(99, 102, 241, 0.04)' : 'transparent',
+                      fontWeight: row.isCurrentUser ? '700' : 'normal'
+                    }}
+                  >
+                    <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '800' }}>
+                      {row.rank === 1 ? (
+                        <Trophy size={18} color="#d97706" style={{ filter: 'drop-shadow(0 2px 4px rgba(217,119,6,0.3))' }} />
+                      ) : row.rank === 2 ? (
+                        <Trophy size={18} color="#94a3b8" />
+                      ) : row.rank === 3 ? (
+                        <Trophy size={18} color="#b45309" />
+                      ) : (
+                        <span>{row.rank}</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '16px 24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {row.isCurrentUser && <Flame size={15} color="var(--primary)" />}
+                        <span style={{ color: row.isCurrentUser ? 'var(--primary)' : 'var(--color-text-main)' }}>
+                          {row.username}
+                        </span>
+                      </div>
+                    </td>
+                    {leaderboardTab === 'rating' ? (
+                      <>
+                        <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '850', color: '#f59e0b' }}>
+                          {row.rating}
+                        </td>
+                        <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '700', color: 'var(--success)' }}>
+                          {row.solved} solved
+                        </td>
+                      </>
+                    ) : (
+                      <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '700', color: 'var(--success)' }}>
+                        {row.solved} solved
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -660,11 +737,16 @@ const Dashboard = () => {
                   <span style={{ color: 'var(--success)', fontWeight: '800' }}>{solvedProblemsCount} / {totalProblemsCount} ({solvePercent}%)</span>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Trophy size={16} color="var(--color-text-muted)" />
-                <div>
-                  <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Contest Rating</span>
-                  <span style={{ color: '#f59e0b', fontWeight: '850', fontSize: '15px' }}>{user.contestRating || 1500}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%' }}>
+                <Trophy size={16} color="var(--color-text-muted)" style={{ flexShrink: 0 }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Contest Rating</span>
+                    <span style={{ color: '#f59e0b', fontWeight: '850', fontSize: '15px' }}>{user.contestRating || 1500}</span>
+                  </div>
+                  <Link to="/dashboard?view=leaderboard&tab=rating" className="btn btn-outline" style={{ fontSize: '11px', padding: '4px 10px', height: 'fit-content', borderRadius: '6px' }}>
+                    View Standings
+                  </Link>
                 </div>
               </div>
             </div>
@@ -983,7 +1065,7 @@ const Dashboard = () => {
             <div className="glass-card animate-fade-in" style={{ animationDelay: '0.2s', padding: '24px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px', marginBottom: '16px' }}>
                 <Trophy size={18} color="var(--primary)" />
-                Leaderboard Standings
+                Practice Standings
               </h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1010,8 +1092,7 @@ const Dashboard = () => {
                       <span style={{ fontSize: '13px', fontWeight: '700', color: participant.isCurrentUser ? 'var(--primary)' : 'var(--color-text-main)' }}>{participant.username}</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '12.5px', fontWeight: '850', color: 'var(--color-text-main)', display: 'block' }}>{participant.rating}</span>
-                      <span style={{ fontSize: '9px', color: 'var(--color-text-muted)', fontWeight: '600' }}>{participant.solved} solved</span>
+                      <span style={{ fontSize: '13px', fontWeight: '850', color: 'var(--success)', display: 'block' }}>{participant.solved} solved</span>
                     </div>
                   </div>
                 ))}
