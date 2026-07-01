@@ -9,6 +9,11 @@ services:
       - "27017:27017" # Optional: kept open for admin/local debugging, but not needed if docker network is secured
     volumes:
       - mongodb_data:/data/db
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
     build:
@@ -27,6 +32,11 @@ services:
       - XAI_MODEL=${XAI_MODEL}
     ports:
       - "5000:5000" # Expose for direct API testing if needed, though traffic routes through frontend proxy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     build:
@@ -38,6 +48,11 @@ services:
       - "80:80"
     depends_on:
       - backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   mongodb_data:
