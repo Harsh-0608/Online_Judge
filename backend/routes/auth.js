@@ -83,6 +83,18 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
+    if (email === 'guest@codeplex.com') {
+      try {
+        const Submission = require('../models/Submission');
+        await Submission.deleteMany({ user: user._id });
+        user.solvedCount = 0;
+        await user.save();
+        console.log('[Auth] Guest user workspace has been successfully reset on login.');
+      } catch (resetErr) {
+        console.error('Failed to reset guest workspace on login:', resetErr.message);
+      }
+    }
+
     const { getUserContestRating } = require('../utils/ratingCalculator');
     const contestRating = await getUserContestRating(user._id);
 
