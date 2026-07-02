@@ -76,6 +76,7 @@ const Contests = () => {
 
   const handleViewLeaderboard = async (contest) => {
     setSelectedContest(contest);
+    navigate(`/contests?contestId=${contest._id}`);
     setLeaderboardLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -200,7 +201,10 @@ const Contests = () => {
         <div className="animate-fade-in">
           {/* Back button */}
           <button 
-            onClick={() => setSelectedContest(null)}
+            onClick={() => {
+              setSelectedContest(null);
+              navigate('/contests');
+            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
