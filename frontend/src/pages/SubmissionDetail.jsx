@@ -7,6 +7,9 @@ const SubmissionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
+  const queryParams = new URLSearchParams(window.location.search);
+  const contestId = queryParams.get('contestId');
+  
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -210,11 +213,11 @@ const SubmissionDetail = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {submission.problem ? (
-            <Link to={`/problems/${submission.problem.slug}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', color: 'var(--color-text-muted)', transition: 'var(--transition-smooth)' }} className="problem-row-hover-profile">
+            <Link to={contestId ? `/problems/${submission.problem.slug}?contestId=${contestId}` : `/problems/${submission.problem.slug}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', color: 'var(--color-text-muted)', transition: 'var(--transition-smooth)' }} className="problem-row-hover-profile">
               <ArrowLeft size={18} />
             </Link>
           ) : (
-            <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', color: 'var(--color-text-muted)', transition: 'var(--transition-smooth)' }} className="problem-row-hover-profile">
+            <Link to={contestId ? `/contests?contestId=${contestId}` : '/dashboard'} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', color: 'var(--color-text-muted)', transition: 'var(--transition-smooth)' }} className="problem-row-hover-profile">
               <ArrowLeft size={18} />
             </Link>
           )}
@@ -224,7 +227,7 @@ const SubmissionDetail = () => {
             </h1>
             <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
               Challenge: {submission.problem ? (
-                <Link to={`/problems/${submission.problem.slug}`} style={{ color: 'var(--primary-hover)', textDecoration: 'none', fontWeight: '700' }} className="problem-link">{submission.problem.title}</Link>
+                <Link to={contestId ? `/problems/${submission.problem.slug}?contestId=${contestId}` : `/problems/${submission.problem.slug}`} style={{ color: 'var(--primary-hover)', textDecoration: 'none', fontWeight: '700' }} className="problem-link">{submission.problem.title}</Link>
               ) : (
                 <span style={{ color: 'var(--color-text-muted)', fontWeight: '700' }}>Unknown Challenge</span>
               )}
@@ -540,13 +543,13 @@ const SubmissionDetail = () => {
         {/* Bottom Navigation controls */}
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'flex-start', marginTop: '8px' }}>
           {submission.problem && (
-            <Link to={`/problems/${submission.problem.slug}`} className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '14px', gap: '8px' }}>
+            <Link to={contestId ? `/problems/${submission.problem.slug}?contestId=${contestId}` : `/problems/${submission.problem.slug}`} className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '14px', gap: '8px' }}>
               <Zap size={16} />
               {submission.status === 'Accepted' ? 'Try Again / Optimize' : 'Try Again'}
             </Link>
           )}
-          <Link to="/dashboard" className="btn btn-outline" style={{ padding: '12px 24px', fontSize: '14px' }}>
-            Return to Dashboard
+          <Link to={contestId ? `/contests?contestId=${contestId}` : '/dashboard'} className="btn btn-outline" style={{ padding: '12px 24px', fontSize: '14px' }}>
+            {contestId ? 'Return to Contest' : 'Return to Dashboard'}
           </Link>
         </div>
 

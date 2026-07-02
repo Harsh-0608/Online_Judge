@@ -174,6 +174,42 @@ router.post('/:id/register', protect, async (req, res) => {
   }
 });
 
+// @desc    Get a single contest details by ID
+// @route   GET /api/contests/:id
+// @access  Private
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const contest = await Contest.findById(req.params.id).populate('problems', 'title slug difficulty');
+    if (!contest) {
+      return res.status(404).json({ success: false, message: 'Contest not found' });
+    }
+    const isRegistered = contest.registeredUsers
+      ? contest.registeredUsers.some(uid => uid.toString() === req.user._id.toString())
+      : false;
+
+    res.json({
+      success: true,
+      contest: {
+        _id: contest._id,
+        title: contest.title,
+        description: contest.description,
+        status: contest.status,
+        startTime: contest.startTime,
+        endTime: contest.endTime,
+        duration: contest.duration,
+        participantsCount: contest.participantsCount,
+        problems: contest.problems,
+        isRegistered
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch contest: ' + error.message
+    });
+  }
+});
+
 // @desc    Get leaderboard rankings for a contest
 // @route   GET /api/contests/:id/leaderboard
 // @access  Private

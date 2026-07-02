@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Code, Play, CheckCircle2, ShieldAlert, Clock, Database, ChevronUp, ChevronDown, CheckCircle, HelpCircle, Tag, Eye, XCircle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Code, Play, CheckCircle2, ShieldAlert, Clock, Database, ChevronUp, ChevronDown, CheckCircle, HelpCircle, Tag, Eye, XCircle, RotateCcw, Trophy } from 'lucide-react';
 import { API_BASE } from '../config';
 
 const ProblemDetail = () => {
@@ -13,6 +13,11 @@ const ProblemDetail = () => {
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  const queryParams = new URLSearchParams(window.location.search);
+  const contestId = queryParams.get('contestId');
+  const [contest, setContest] = useState(null);
+  const [contestTimeLeft, setContestTimeLeft] = useState('');
   
   // Tab layout states
   const [leftTab, setLeftTab] = useState('description'); // 'description' or 'submissions'
@@ -106,10 +111,60 @@ const ProblemDetail = () => {
     fetchProblemData();
     fetchSubmissionsHistory();
 
+    if (contestId) {
+      const fetchContestData = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`${API_BASE}/contests/${contestId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const data = await res.json();
+          if (data.success) {
+            setContest(data.contest);
+          }
+        } catch (err) {
+          console.error('Failed to load contest info:', err);
+        }
+      };
+      fetchContestData();
+    }
+
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, [slug, user]);
+
+  useEffect(() => {
+    if (!contest) return;
+
+    const calculateContestTime = () => {
+      const now = new Date();
+      const start = new Date(contest.startTime);
+      const end = new Date(contest.endTime);
+
+      if (now < start) {
+        const diff = start.getTime() - now.getTime();
+        const hrs = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        setContestTimeLeft(`Starts in: ${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
+      } else if (now >= start && now <= end) {
+        const diff = end.getTime() - now.getTime();
+        const hrs = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        setContestTimeLeft(`Time Remaining: ${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
+      } else {
+        setContestTimeLeft('Contest Finished');
+      }
+    };
+
+    calculateContestTime();
+    const interval = setInterval(calculateContestTime, 1000);
+    return () => clearInterval(interval);
+  }, [contest]);
 
   const fetchSubmissionsHistory = async () => {
     try {
@@ -233,7 +288,7 @@ const ProblemDetail = () => {
           localStorage.setItem(`codeplex_last_lang_global`, selectedLanguage);
         }
         // Redirect to submission detail result page
-        navigate(`/submissions/${data.submissionId}`);
+        navigate(contestId ? `/submissions/${data.submissionId}?contestId=${contestId}` : `/submissions/${data.submissionId}`);
       } else {
         setExecutionResult({ status: 'Error', errorDetails: data.message });
       }
@@ -313,13 +368,43 @@ const ProblemDetail = () => {
       <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
         <h2 style={{ color: 'var(--danger)', marginBottom: '10px' }}>Error Loading Workspace</h2>
         <p style={{ color: 'var(--color-text-muted)', marginBottom: '20px' }}>{error || 'Problem not found'}</p>
-        <button onClick={() => navigate('/problems')} className="btn btn-primary">Return to Challenges</button>
+        <button onClick={() => navigate(contestId ? `/contests?contestId=${contestId}` : '/problems')} className="btn btn-primary">
+          {contestId ? 'Return to Contest' : 'Return to Challenges'}
+        </button>
       </div>
     );
   }
 
   return (
     <div style={{ height: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
+      
+      {/* Contest Banner */}
+      {contest && (
+        <div style={{
+          backgroundColor: 'rgba(239, 68, 68, 0.08)',
+          borderBottom: '1px solid rgba(239, 68, 68, 0.25)',
+          padding: '8px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0,
+          zIndex: 15,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Trophy size={16} color="var(--danger)" />
+            <span style={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--danger)' }}>
+              Live Contest Match: <strong style={{ color: 'var(--color-text-main)' }}>{contest.title}</strong>
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Clock size={14} color="var(--danger)" />
+            <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--danger)', fontFamily: 'monospace' }}>
+              {contestTimeLeft}
+            </span>
+          </div>
+        </div>
+      )}
       
       {/* Mobile view Tab bar */}
       <div className="mobile-workspace-tabs" style={{ display: 'none', backgroundColor: '#0e1220', borderBottom: '1px solid var(--border-glass)', padding: '6px', justifyContent: 'center', gap: '8px', zIndex: 12 }}>
@@ -346,13 +431,13 @@ const ProblemDetail = () => {
           {/* Navigation back and tabs */}
           <div style={{ borderBottom: '1px solid var(--border-glass)', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, backgroundColor: 'rgba(0,0,0,0.2)' }}>
             <button 
-              onClick={() => navigate('/problems')}
+              onClick={() => navigate(contestId ? `/contests?contestId=${contestId}` : '/problems')}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', border: 'none', background: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '13.5px', fontWeight: '700', transition: 'var(--transition-smooth)' }}
               onMouseEnter={(e) => e.target.style.color = 'var(--primary-hover)'}
               onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}
             >
               <ArrowLeft size={16} />
-              Problems
+              {contestId ? 'Back to Contest' : 'Problems'}
             </button>
             
             <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '15px', padding: '2px', border: '1px solid var(--border-glass)' }}>
@@ -531,7 +616,7 @@ const ProblemDetail = () => {
                           {(showAllSubmissions ? submissions : submissions.slice(0, 10)).map((sub) => (
                             <tr key={sub._id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
                               <td style={{ padding: '14px 10px', verticalAlign: 'middle' }}>
-                                <Link to={`/submissions/${sub._id}`} style={{ textDecoration: 'none', fontWeight: '700', color: getStatusColor(sub.status), display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                <Link to={contestId ? `/submissions/${sub._id}?contestId=${contestId}` : `/submissions/${sub._id}`} style={{ textDecoration: 'none', fontWeight: '700', color: getStatusColor(sub.status), display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                                   {sub.status === 'Accepted' ? (
                                     <CheckCircle size={14} color="var(--success)" style={{ flexShrink: 0 }} />
                                   ) : (
@@ -803,6 +888,15 @@ const ProblemDetail = () => {
                               Passed: 0 / {executionResult.totalCount} sample test cases
                             </span>
                           )}
+                        </div>
+                      </div>
+                    ) : executionResult.status === 'Error' ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--danger)', fontWeight: '700', fontSize: '14.5px' }}>
+                            <ShieldAlert size={18} />
+                            Execution / Connection Error
+                          </div>
                         </div>
                         <pre style={{ margin: 0, padding: '12px', backgroundColor: 'var(--danger-glow)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', borderRadius: '6px', fontFamily: 'monospace', fontSize: '12px', overflowX: 'auto', maxHeight: '140px', whiteSpace: 'pre-wrap' }}>{executionResult.errorDetails}</pre>
                       </div>

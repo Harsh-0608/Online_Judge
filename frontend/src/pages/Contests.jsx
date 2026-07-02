@@ -74,30 +74,6 @@ const Contests = () => {
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchContests = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${API_BASE}/contests`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const data = await res.json();
-        if (data.success) {
-          setContests(data.contests);
-        } else {
-          setError(data.message);
-        }
-      } catch (err) {
-        setError('Failed to fetch contests');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchContests();
-  }, []);
-
   const handleViewLeaderboard = async (contest) => {
     setSelectedContest(contest);
     setLeaderboardLoading(true);
@@ -120,6 +96,40 @@ const Contests = () => {
       setLeaderboardLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchContests = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_BASE}/contests`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        if (data.success) {
+          setContests(data.contests);
+          
+          // Auto select contest if contestId query param matches
+          const queryParams = new URLSearchParams(window.location.search);
+          const urlContestId = queryParams.get('contestId');
+          if (urlContestId) {
+            const matchedContest = data.contests.find(c => c._id === urlContestId);
+            if (matchedContest) {
+              handleViewLeaderboard(matchedContest);
+            }
+          }
+        } else {
+          setError(data.message);
+        }
+      } catch (err) {
+        setError('Failed to fetch contests');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchContests();
+  }, []);
 
   const handleRegisterContest = async (contestId) => {
     try {
@@ -281,7 +291,7 @@ const Contests = () => {
                           </span>
                         </div>
                         <button
-                          onClick={() => navigate(`/problems/${prob.slug}`)}
+                          onClick={() => navigate(`/problems/${prob.slug}?contestId=${selectedContest._id}`)}
                           className="btn btn-primary"
                           style={{ padding: '8px 16px', fontSize: '12.5px', fontWeight: '700' }}
                         >

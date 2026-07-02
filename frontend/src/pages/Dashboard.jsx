@@ -15,6 +15,9 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [allSubmissions, setAllSubmissions] = useState([]);
   const [loadingAllSubmissions, setLoadingAllSubmissions] = useState(false);
+  const [submissionsPage, setSubmissionsPage] = useState(1);
+  const [solvedPage, setSolvedPage] = useState(1);
+  const [unsolvedPage, setUnsolvedPage] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const view = searchParams.get('view');
@@ -262,6 +265,13 @@ const Dashboard = () => {
 
   // If URL includes view=submissions, render all user submissions list
   if (view === 'submissions') {
+    const subItemsPerPage = 10;
+    const subTotalPages = Math.ceil(allSubmissions.length / subItemsPerPage);
+    const paginatedSubmissions = allSubmissions.slice(
+      (submissionsPage - 1) * subItemsPerPage,
+      submissionsPage * subItemsPerPage
+    );
+
     return (
       <div style={{ padding: '36px 40px', maxWidth: '1280px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
         {/* Header Block */}
@@ -297,7 +307,8 @@ const Dashboard = () => {
               <p style={{ margin: 0, fontSize: '13.5px' }}>No submissions found.</p>
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <>
+              <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--color-text-muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -309,7 +320,7 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {allSubmissions.map((sub) => (
+                  {paginatedSubmissions.map((sub) => (
                     <tr key={sub._id} style={{ borderBottom: '1px solid var(--border-glass)', transition: 'var(--transition-smooth)' }} className="problem-row-hover">
                       <td style={{ padding: '14px 16px', fontWeight: '700' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -346,9 +357,130 @@ const Dashboard = () => {
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
+
+            {/* Pagination Controls */}
+            {subTotalPages > 1 && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '16px 24px',
+                borderTop: '1px solid var(--border-glass)',
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginTop: '16px'
+              }}>
+                <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
+                  Showing <strong style={{ color: 'var(--color-text-main)' }}>{Math.min(allSubmissions.length, (submissionsPage - 1) * subItemsPerPage + 1)}-{Math.min(allSubmissions.length, submissionsPage * subItemsPerPage)}</strong> of <strong style={{ color: 'var(--color-text-main)' }}>{allSubmissions.length}</strong> submissions
+                </span>
+                
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <button
+                    disabled={submissionsPage === 1}
+                    onClick={() => setSubmissionsPage(1)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-glass)',
+                      backgroundColor: submissionsPage === 1 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                      color: submissionsPage === 1 ? 'rgba(255,255,255,0.2)' : 'var(--color-text-main)',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      cursor: submissionsPage === 1 ? 'not-allowed' : 'pointer',
+                      transition: 'var(--transition-smooth)'
+                    }}
+                  >
+                    First
+                  </button>
+                  <button
+                    disabled={submissionsPage === 1}
+                    onClick={() => setSubmissionsPage(prev => Math.max(1, prev - 1))}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-glass)',
+                      backgroundColor: submissionsPage === 1 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                      color: submissionsPage === 1 ? 'rgba(255,255,255,0.2)' : 'var(--color-text-main)',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      cursor: submissionsPage === 1 ? 'not-allowed' : 'pointer',
+                      transition: 'var(--transition-smooth)'
+                    }}
+                  >
+                    Prev
+                  </button>
+
+                  {/* Page numbers */}
+                  {Array.from({ length: subTotalPages }, (_, i) => i + 1)
+                    .filter(page => page === 1 || page === subTotalPages || Math.abs(page - submissionsPage) <= 1)
+                    .map((page, index, array) => {
+                      const showDots = index > 0 && page - array[index - 1] > 1;
+                      return (
+                        <React.Fragment key={page}>
+                          {showDots && <span style={{ color: 'var(--color-text-muted)', fontSize: '13px', margin: '0 4px' }}>...</span>}
+                          <button
+                            onClick={() => setSubmissionsPage(page)}
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '6px',
+                              border: `1px solid ${submissionsPage === page ? 'var(--primary)' : 'var(--border-glass)'}`,
+                              backgroundColor: submissionsPage === page ? 'var(--primary)' : 'rgba(255,255,255,0.03)',
+                              color: submissionsPage === page ? 'white' : 'var(--color-text-muted)',
+                              fontSize: '12px',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              transition: 'var(--transition-smooth)'
+                            }}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      );
+                    })}
+
+                  <button
+                    disabled={submissionsPage === subTotalPages}
+                    onClick={() => setSubmissionsPage(prev => Math.min(subTotalPages, prev + 1))}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-glass)',
+                      backgroundColor: submissionsPage === subTotalPages ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                      color: submissionsPage === subTotalPages ? 'rgba(255,255,255,0.2)' : 'var(--color-text-main)',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      cursor: submissionsPage === subTotalPages ? 'not-allowed' : 'pointer',
+                      transition: 'var(--transition-smooth)'
+                    }}
+                  >
+                    Next
+                  </button>
+                  <button
+                    disabled={submissionsPage === subTotalPages}
+                    onClick={() => setSubmissionsPage(subTotalPages)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-glass)',
+                      backgroundColor: submissionsPage === subTotalPages ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                      color: submissionsPage === subTotalPages ? 'rgba(255,255,255,0.2)' : 'var(--color-text-main)',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      cursor: submissionsPage === subTotalPages ? 'not-allowed' : 'pointer',
+                      transition: 'var(--transition-smooth)'
+                    }}
+                  >
+                    Last
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
+    </div>
     );
   }
 
@@ -548,6 +680,20 @@ const Dashboard = () => {
   if (view === 'profile') {
     const solvedProblems = problems.filter(p => p.isSolved);
     const unsolvedProblems = problems.filter(p => !p.isSolved);
+
+    const solvedItemsPerPage = 8;
+    const solvedTotalPages = Math.ceil(solvedProblems.length / solvedItemsPerPage);
+    const paginatedSolved = solvedProblems.slice(
+      (solvedPage - 1) * solvedItemsPerPage,
+      solvedPage * solvedItemsPerPage
+    );
+
+    const unsolvedItemsPerPage = 8;
+    const unsolvedTotalPages = Math.ceil(unsolvedProblems.length / unsolvedItemsPerPage);
+    const paginatedUnsolved = unsolvedProblems.slice(
+      (unsolvedPage - 1) * unsolvedItemsPerPage,
+      unsolvedPage * unsolvedItemsPerPage
+    );
 
     return (
       <div style={{ padding: '36px 40px', maxWidth: '1280px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
@@ -766,29 +912,55 @@ const Dashboard = () => {
               {solvedProblems.length === 0 ? (
                 <p style={{ color: 'var(--color-text-muted)', fontSize: '13.5px', margin: 0 }}>You haven't solved any problems yet. Go to the problems page to start coding!</p>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                  {solvedProblems.map(prob => (
-                    <div key={prob._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'rgba(16,185,129,0.03)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <input type="checkbox" checked readOnly style={{ accentColor: 'var(--success)', width: '16px', height: '16px', cursor: 'default' }} />
-                        <Link to={`/problems/${prob.slug}`} style={{ fontSize: '14px', fontWeight: '700', color: 'var(--color-text-main)', textDecoration: 'none' }} className="problem-link">
-                          {prob.title}
-                        </Link>
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                    {paginatedSolved.map(prob => (
+                      <div key={prob._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'rgba(16,185,129,0.03)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <input type="checkbox" checked readOnly style={{ accentColor: 'var(--success)', width: '16px', height: '16px', cursor: 'default' }} />
+                          <Link to={`/problems/${prob.slug}`} style={{ fontSize: '14px', fontWeight: '700', color: 'var(--color-text-main)', textDecoration: 'none' }} className="problem-link">
+                            {prob.title}
+                          </Link>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: '800', color: prob.difficulty === 'Easy' ? 'var(--success)' : prob.difficulty === 'Medium' ? 'var(--warning)' : 'var(--danger)' }}>
+                            {prob.difficulty}
+                          </span>
+                          <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
+                            {prob.acceptanceRate}% AC
+                          </span>
+                          <Link to={`/problems/${prob.slug}`} style={{ color: 'var(--primary-hover)', display: 'inline-flex', alignItems: 'center' }}>
+                            <ChevronRight size={16} />
+                          </Link>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: prob.difficulty === 'Easy' ? 'var(--success)' : prob.difficulty === 'Medium' ? 'var(--warning)' : 'var(--danger)' }}>
-                          {prob.difficulty}
-                        </span>
-                        <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
-                          {prob.acceptanceRate}% AC
-                        </span>
-                        <Link to={`/problems/${prob.slug}`} style={{ color: 'var(--primary-hover)', display: 'inline-flex', alignItems: 'center' }}>
-                          <ChevronRight size={16} />
-                        </Link>
+                    ))}
+                  </div>
+                  {/* Pagination */}
+                  {solvedTotalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                      <span style={{ color: 'var(--color-text-muted)' }}>Page {solvedPage} of {solvedTotalPages}</span>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button
+                          disabled={solvedPage === 1}
+                          onClick={() => setSolvedPage(prev => Math.max(1, prev - 1))}
+                          className="btn btn-outline"
+                          style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px' }}
+                        >
+                          Prev
+                        </button>
+                        <button
+                          disabled={solvedPage === solvedTotalPages}
+                          onClick={() => setSolvedPage(prev => Math.min(solvedTotalPages, prev + 1))}
+                          className="btn btn-outline"
+                          style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px' }}
+                        >
+                          Next
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -802,29 +974,55 @@ const Dashboard = () => {
               {unsolvedProblems.length === 0 ? (
                 <p style={{ color: 'var(--color-text-muted)', fontSize: '13.5px', margin: 0 }}>🎉 Congratulations! You have solved all the challenges in CodePlex!</p>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                  {unsolvedProblems.map(prob => (
-                    <div key={prob._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: '10px', transition: 'var(--transition-smooth)' }} className="problem-row-hover-profile">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: '1px solid var(--border-glass)' }}></div>
-                        <Link to={`/problems/${prob.slug}`} style={{ fontSize: '14px', fontWeight: '700', color: 'var(--color-text-main)', textDecoration: 'none' }} className="problem-link">
-                          {prob.title}
-                        </Link>
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                    {paginatedUnsolved.map(prob => (
+                      <div key={prob._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: '10px', transition: 'var(--transition-smooth)' }} className="problem-row-hover-profile">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: '1px solid var(--border-glass)' }}></div>
+                          <Link to={`/problems/${prob.slug}`} style={{ fontSize: '14px', fontWeight: '700', color: 'var(--color-text-main)', textDecoration: 'none' }} className="problem-link">
+                            {prob.title}
+                          </Link>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: '800', color: prob.difficulty === 'Easy' ? 'var(--success)' : prob.difficulty === 'Medium' ? 'var(--warning)' : 'var(--danger)' }}>
+                            {prob.difficulty}
+                          </span>
+                          <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
+                            {prob.acceptanceRate}% AC
+                          </span>
+                          <Link to={`/problems/${prob.slug}`} className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '11.5px', borderRadius: '6px' }}>
+                            Solve
+                          </Link>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: prob.difficulty === 'Easy' ? 'var(--success)' : prob.difficulty === 'Medium' ? 'var(--warning)' : 'var(--danger)' }}>
-                          {prob.difficulty}
-                        </span>
-                        <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
-                          {prob.acceptanceRate}% AC
-                        </span>
-                        <Link to={`/problems/${prob.slug}`} className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '11.5px', borderRadius: '6px' }}>
-                          Solve
-                        </Link>
+                    ))}
+                  </div>
+                  {/* Pagination */}
+                  {unsolvedTotalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                      <span style={{ color: 'var(--color-text-muted)' }}>Page {unsolvedPage} of {unsolvedTotalPages}</span>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button
+                          disabled={unsolvedPage === 1}
+                          onClick={() => setUnsolvedPage(prev => Math.max(1, prev - 1))}
+                          className="btn btn-outline"
+                          style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px' }}
+                        >
+                          Prev
+                        </button>
+                        <button
+                          disabled={unsolvedPage === unsolvedTotalPages}
+                          onClick={() => setUnsolvedPage(prev => Math.min(unsolvedTotalPages, prev + 1))}
+                          className="btn btn-outline"
+                          style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px' }}
+                        >
+                          Next
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
 

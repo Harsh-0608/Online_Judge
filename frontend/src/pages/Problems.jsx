@@ -13,6 +13,8 @@ const Problems = () => {
   const [filterDifficulty, setFilterDifficulty] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
   const [selectedTag, setSelectedTag] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,6 +53,10 @@ const Problems = () => {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterDifficulty, filterStatus, selectedTag]);
 
   // Filter problems based on difficulty, status, search term, and tag
   const filteredProblems = problems.filter(prob => {
@@ -111,6 +117,12 @@ const Problems = () => {
   };
 
   const dailyChallenge = getDailyChallenge();
+
+  const totalPages = Math.ceil(filteredProblems.length / itemsPerPage);
+  const paginatedProblems = filteredProblems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div style={{ padding: '40px 24px', maxWidth: '1340px', margin: '0 auto', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
@@ -321,7 +333,7 @@ const Problems = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredProblems.map((problem) => (
+                    {paginatedProblems.map((problem) => (
                       <tr 
                         key={problem._id} 
                         style={{ 
@@ -382,6 +394,130 @@ const Problems = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '16px 24px',
+                  borderTop: '1px solid var(--border-glass)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                  flexWrap: 'wrap',
+                  gap: '12px'
+                }}>
+                  <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
+                    Showing <strong style={{ color: 'var(--color-text-main)' }}>{Math.min(filteredProblems.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filteredProblems.length, currentPage * itemsPerPage)}</strong> of <strong style={{ color: 'var(--color-text-main)' }}>{filteredProblems.length}</strong> challenges
+                  </span>
+                  
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(1)}
+                      className="pagination-btn"
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border-glass)',
+                        backgroundColor: currentPage === 1 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                        color: currentPage === 1 ? 'rgba(255,255,255,0.2)' : 'var(--color-text-main)',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                        transition: 'var(--transition-smooth)'
+                      }}
+                    >
+                      First
+                    </button>
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className="pagination-btn"
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border-glass)',
+                        backgroundColor: currentPage === 1 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                        color: currentPage === 1 ? 'rgba(255,255,255,0.2)' : 'var(--color-text-main)',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                        transition: 'var(--transition-smooth)'
+                      }}
+                    >
+                      Prev
+                    </button>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                      .map((page, index, array) => {
+                        const showDots = index > 0 && page - array[index - 1] > 1;
+                        return (
+                          <React.Fragment key={page}>
+                            {showDots && <span style={{ color: 'var(--color-text-muted)', fontSize: '13px', margin: '0 4px' }}>...</span>}
+                            <button
+                              onClick={() => setCurrentPage(page)}
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '6px',
+                                border: `1px solid ${currentPage === page ? 'var(--primary)' : 'var(--border-glass)'}`,
+                                backgroundColor: currentPage === page ? 'var(--primary)' : 'rgba(255,255,255,0.03)',
+                                color: currentPage === page ? 'white' : 'var(--color-text-muted)',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                transition: 'var(--transition-smooth)'
+                              }}
+                              className={currentPage === page ? 'active-page-btn' : 'page-btn'}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className="pagination-btn"
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border-glass)',
+                        backgroundColor: currentPage === totalPages ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                        color: currentPage === totalPages ? 'rgba(255,255,255,0.2)' : 'var(--color-text-main)',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                        transition: 'var(--transition-smooth)'
+                      }}
+                    >
+                      Next
+                    </button>
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="pagination-btn"
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border-glass)',
+                        backgroundColor: currentPage === totalPages ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                        color: currentPage === totalPages ? 'rgba(255,255,255,0.2)' : 'var(--color-text-main)',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                        transition: 'var(--transition-smooth)'
+                      }}
+                    >
+                      Last
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
