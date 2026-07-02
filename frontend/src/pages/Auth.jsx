@@ -97,6 +97,25 @@ const Auth = () => {
     }
   };
 
+  const handleGuestLogin = async () => {
+    setError('');
+    setSuccess('');
+    setIsSubmitting(true);
+    try {
+      const result = await login('guest@codeplex.com', 'guestpassword123');
+      if (result.success) {
+        setSuccess('Logged in as Guest! Redirecting...');
+        setTimeout(() => navigate('/dashboard'), 1000);
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError('Connection failed. Please check if your server is running.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleOAuth = (provider) => {
     setError('');
     setSuccess(`Connecting with ${provider}...`);
@@ -433,6 +452,18 @@ const Auth = () => {
               {isSubmitting ? 'Verifying...' : isLogin ? 'Sign In' : 'Sign Up'}
               {!isSubmitting && <ArrowRight size={16} />}
             </button>
+
+            {isLogin && (
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ width: '100%', padding: '13px', marginTop: '12px' }}
+                disabled={isSubmitting}
+                onClick={handleGuestLogin}
+              >
+                Continue as Guest
+              </button>
+            )}
           </form>
 
           <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '13.5px', color: 'var(--color-text-muted)' }}>

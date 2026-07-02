@@ -62,6 +62,28 @@ mongoose
       console.error('Failed to synchronize user solved counts on startup:', migError.message);
     }
 
+    // Ensure guest user exists with known credentials
+    try {
+      const User = require('./models/User');
+      const guestEmail = 'guest@codeplex.com';
+      let guestUser = await User.findOne({ email: guestEmail });
+      if (!guestUser) {
+        guestUser = await User.create({
+          username: 'guest',
+          email: guestEmail,
+          password: 'guestpassword123',
+          role: 'user'
+        });
+        console.log('[Migration] Guest user created successfully.');
+      } else {
+        guestUser.password = 'guestpassword123';
+        await guestUser.save();
+        console.log('[Migration] Guest user password updated.');
+      }
+    } catch (guestError) {
+      console.error('Failed to seed guest user:', guestError.message);
+    }
+
     app.listen(PORT, () => {
       console.log(`Backend server is running in development mode on port ${PORT}`);
     });
