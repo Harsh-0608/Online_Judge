@@ -108,11 +108,30 @@ router.get('/', protect, async (req, res) => {
         ? c.registeredUsers.some(uid => uid.toString() === req.user._id.toString())
         : false;
 
+      const now = new Date();
+      const start = new Date(c.startTime);
+      const end = new Date(c.endTime);
+
+      let computedStatus = c.status;
+      if (now < start) {
+        computedStatus = 'Upcoming';
+      } else if (now >= start && now <= end) {
+        computedStatus = 'Active';
+      } else {
+        computedStatus = 'Completed';
+      }
+
+      if (c.status !== computedStatus) {
+        Contest.updateOne({ _id: c._id }, { status: computedStatus }).catch(err => 
+          console.error('Failed to update contest status in DB:', err)
+        );
+      }
+
       return {
         _id: c._id,
         title: c.title,
         description: c.description,
-        status: c.status,
+        status: computedStatus,
         startTime: c.startTime,
         endTime: c.endTime,
         duration: c.duration,
@@ -187,13 +206,32 @@ router.get('/:id', protect, async (req, res) => {
       ? contest.registeredUsers.some(uid => uid.toString() === req.user._id.toString())
       : false;
 
+    const now = new Date();
+    const start = new Date(contest.startTime);
+    const end = new Date(contest.endTime);
+
+    let computedStatus = contest.status;
+    if (now < start) {
+      computedStatus = 'Upcoming';
+    } else if (now >= start && now <= end) {
+      computedStatus = 'Active';
+    } else {
+      computedStatus = 'Completed';
+    }
+
+    if (contest.status !== computedStatus) {
+      Contest.updateOne({ _id: contest._id }, { status: computedStatus }).catch(err => 
+        console.error('Failed to update contest status in DB:', err)
+      );
+    }
+
     res.json({
       success: true,
       contest: {
         _id: contest._id,
         title: contest.title,
         description: contest.description,
-        status: contest.status,
+        status: computedStatus,
         startTime: contest.startTime,
         endTime: contest.endTime,
         duration: contest.duration,
