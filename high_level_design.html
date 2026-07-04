@@ -12,31 +12,33 @@
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.5;
             color: #1e293b;
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
-            padding: 10px;
+            padding: 20px;
         }
         h1, h2, h3, h4 {
             color: #0f172a;
             font-weight: 700;
-            margin-top: 1.1em;
-            margin-bottom: 0.3em;
+            margin-top: 1.2em;
+            margin-bottom: 0.4em;
             page-break-after: avoid;
         }
         h1 {
-            font-size: 26px;
+            font-size: 28px;
             border-bottom: 3px solid #6366f1;
-            padding-bottom: 6px;
+            padding-bottom: 8px;
             margin-top: 0;
-        }
-        h2 {
-            font-size: 20px;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 4px;
             color: #4f46e5;
         }
+        h2 {
+            font-size: 22px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+            color: #4f46e5;
+            margin-top: 1.5em;
+        }
         h3 {
-            font-size: 16px;
+            font-size: 17px;
             color: #1e1b4b;
         }
         p {
@@ -49,7 +51,7 @@
             padding-left: 20px;
         }
         li {
-            margin-bottom: 0.4em;
+            margin-bottom: 0.5em;
         }
         a {
             color: #4f46e5;
@@ -61,7 +63,7 @@
         code {
             font-family: Consolas, Monaco, 'Andale Mono', monospace;
             background-color: #f1f5f9;
-            padding: 2px 4px;
+            padding: 2px 5px;
             border-radius: 4px;
             font-size: 0.9em;
             color: #0f172a;
@@ -69,7 +71,7 @@
         pre {
             background-color: #0f172a;
             color: #f8fafc;
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
             overflow-x: auto;
             margin: 1em 0;
@@ -83,13 +85,14 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 1em 0;
+            margin: 1.2em 0;
             page-break-inside: avoid;
         }
         th, td {
             border: 1px solid #e2e8f0;
             padding: 10px 12px;
             text-align: left;
+            font-size: 13.5px;
         }
         th {
             background-color: #f8fafc;
@@ -103,7 +106,7 @@
             border-left: 4px solid #6366f1;
             margin: 1em 0;
             background-color: #f5f3ff;
-            padding: 10px 14px;
+            padding: 12px 16px;
             border-radius: 0 8px 8px 0;
             page-break-inside: avoid;
         }
@@ -113,16 +116,15 @@
         hr {
             border: 0;
             border-top: 1px solid #e2e8f0;
-            margin: 1.5em 0;
+            margin: 2em 0;
         }
         
-        /* Diagrams styling */
         .diagram-container, .flow-container, .nav-map-container, .interaction-container {
             background-color: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 16px 20px;
-            margin: 14px 0;
+            padding: 18px 22px;
+            margin: 16px 0;
             page-break-inside: avoid;
         }
         .diagram-grid {
@@ -134,20 +136,20 @@
             width: 90%;
             max-width: 500px;
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 12px 16px;
             text-align: center;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
             border: 1px solid #cbd5e1;
         }
         .diagram-box-title {
             font-weight: 700;
-            font-size: 13px;
+            font-size: 13.5px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 4px;
         }
         .diagram-box-content {
-            font-size: 12px;
+            font-size: 12.5px;
             color: #475569;
         }
         .client-box { background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
@@ -172,10 +174,9 @@
             margin: 6px 0;
         }
         
-        /* Interaction map styling */
         .interaction-title {
             font-weight: 700;
-            font-size: 13px;
+            font-size: 13.5px;
             color: #0f172a;
             margin-bottom: 12px;
             text-transform: uppercase;
@@ -218,7 +219,6 @@
         .worker-source { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
         .docker-target { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
         
-        /* Step flow styling */
         .flow-step {
             display: flex;
             align-items: center;
@@ -261,7 +261,6 @@
             margin: 2px 0;
         }
         
-        /* Navigation map styling */
         .nav-map-container {
             display: flex;
             flex-direction: column;
@@ -316,430 +315,177 @@
 </head>
 <body>
     <h1>High-Level Design (HLD): Premium Online Judge Platform</h1>
-<h2>1. Problem Statement</h2>
-<p>The goal is to build an online judge platform similar to LeetCode and CodeChef, providing an environment where developers can solve coding challenges, run code against test cases, and submit their solutions for scoring. The platform needs to be highly interactive, robust, and feature a premium, visually stunning dark-mode user interface with micro-animations and seamless navigation.</p>
-<h2>2. Overview</h2>
-<p>The platform uses a modern web architecture:
-- <strong>Frontend</strong>: A React Single Page Application (SPA) built using Vite for fast compilation, with styling driven by a custom Vanilla CSS design system. It embeds the Monaco Editor to provide an IDE-like coding workspace.
-- <strong>Backend</strong>: A Node.js and Express.js API gateway that manages users, problem sets, and submissions, and orchestrates code execution tasks.
-- <strong>Database</strong>: MongoDB handles storage of user profiles, problem statements, test cases, and submission histories.
-- <strong>Execution Sandbox</strong>: Runs submitted code securely using isolated Docker containers to prevent unauthorized system access, resource hogging, or malicious activity.</p>
-<h2>3. Key Features</h2>
-<ul>
-<li><strong>Interactive Dashboard</strong>: Circular progress charts for solved problems, a GitHub-style activity contribution calendar, and personalized metrics.</li>
-<li><strong>IDE-Like Workspace</strong>: Resizable split-pane layout containing the problem description, test case inputs, output console, and code editor.</li>
-<li><strong>Real-Time Judging</strong>: Asynchronous submission queue that updates the UI dynamically using WebSockets once evaluation is finished.</li>
-<li><strong>Global Leaderboard</strong>: Live rankings based on total points and submission performance metrics.</li>
-</ul>
-<hr />
-<h2>4. System Architecture</h2>
-<p>To ensure high availability, security, and scalability (especially during compilation and execution of untrusted user code), the platform supports a dual-mode queuing architecture. The current single-server production deployment uses an <strong>In-Memory Concurrency Queue</strong> to safeguard server resources, with a seamless scale-out path to a <strong>Distributed Message Queue (Redis & BullMQ)</strong>.</p>
-<div class="diagram-container">
-  <div class="diagram-grid">
-    <div class="diagram-box client-box">
-      <div class="diagram-box-title">Client Layer</div>
-      <div class="diagram-box-content">React SPA Workspace (Monaco Editor)</div>
-    </div>
-    <div class="diagram-connector">↕ (HTTP / REST)</div>
-    
-    <div class="diagram-box api-box">
-      <div class="diagram-box-title">API & Gateway Layer</div>
-      <div class="diagram-box-content">Express.js Backend Gateway</div>
-    </div>
-    <div class="diagram-connector">↓ (Enqueue Submissions)</div>
-    
-    <div class="diagram-box queue-box">
-      <div class="diagram-box-title">Queuing Layer</div>
-      <div class="diagram-box-content">In-Memory Promise Queue (or Distributed Redis & BullMQ)</div>
-    </div>
-    <div class="diagram-connector">↓ (Bounded Concurrency)</div>
-    
-    <div class="diagram-box worker-box">
-      <div class="diagram-box-title">Execution Layer (Sandbox)</div>
-      <div class="diagram-box-content">Docker Sandbox (Node / Python / C++ / Java Compiler Runners)</div>
-    </div>
-    
-    <div class="diagram-connector">↓ (Store Results & Fetch Problems)</div>
-    <div class="diagram-box db-box">
-      <div class="diagram-box-title">Storage Layer</div>
-      <div class="diagram-box-content">MongoDB Database (Users, Problems, Submissions)</div>
-    </div>
-  </div>
-</div>
 
-<h3>System Components &amp; Layout</h3>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Component Layer</th>
-<th style="text-align: left;">Technology Stack</th>
-<th style="text-align: left;">Purpose / Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>Client Layer</strong></td>
-<td style="text-align: left;">React SPA (Vite, Vanilla CSS)</td>
-<td style="text-align: left;">Premium user interface, dashboard metrics, and code editing workspace.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>API &amp; Gateway Layer</strong></td>
-<td style="text-align: left;">Node.js + Express.js</td>
-<td style="text-align: left;">Manages routing, authentication (JWT), and problem/submission CRUD.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Queuing Layer</strong></td>
-<td style="text-align: left;">In-Memory Queue (default) / Redis + BullMQ (scale-out)</td>
-<td style="text-align: left;">Buffers code runs to limit concurrent compiler execution and protect CPU/Memory.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Execution Layer</strong></td>
-<td style="text-align: left;">Docker Sandbox Runners</td>
-<td style="text-align: left;">Compiles and runs code inside resource-limited, network-disabled isolated containers.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Storage Layer</strong></td>
-<td style="text-align: left;">MongoDB</td>
-<td style="text-align: left;">Stores persistent application data (problems, submissions, users).</td>
-</tr>
-</tbody>
-</table>
-<h3>Key Architectural Concepts</h3>
-<ol>
-<li><strong>Bounded Code Execution</strong>: Code runs are processed through a queue to restrict peak concurrency (defaulting to 2 concurrent runs, customizable via `MAX_CONCURRENT_RUNS`). This protects the server gateway from freezing, resource exhaustion, or process starvation.</li>
-<li><strong>Self-Contained Deployment</strong>: An in-memory queue is implemented inside the sandbox utility. This removes external Redis infrastructure dependencies for single-server or lightweight setups, while keeping the API responsive.</li>
-<li><strong>Scale-out Architecture (Distributed Queue)</strong>: For large-scale distributed setups, the queuing helper can be configured to forward tasks to a Redis/BullMQ cluster, where multiple isolated execution worker instances poll tasks and scale processing capacity horizontally.</li>
-</ol>
-<hr />
-<h2>5. Component Interactions &amp; Communication</h2>
-<p>To explain how components talk to each other, the interaction flow is structured as follows:</p>
-<div class="interaction-container">
-  <div class="interaction-title">Component Interaction & Message Map</div>
-  
-  <div class="interaction-row">
-    <div class="interaction-source client-source">React SPA (UI)</div>
-    <div class="interaction-line">── API Requests (HTTP/REST) ──➔</div>
-    <div class="interaction-target api-target">Express API Gateway</div>
-  </div>
-  
-  <div class="interaction-row">
-    <div class="interaction-source api-source">Express API Gateway</div>
-    <div class="interaction-line">── Token Validation ──➔</div>
-    <div class="interaction-target auth-target">JWT Middleware</div>
-  </div>
+    <h2>1. System Overview</h2>
+    <p>The platform is a secure, high-performance online judge system that enables users to solve coding challenges, run code against custom inputs, and participate in contests. The application features a glassmorphic dark-mode frontend, an integrated Monaco code editor, real-time code evaluation sandboxing, and a bounded concurrency task queue designed for optimal host server stability.</p>
 
-  <div class="interaction-row">
-    <div class="interaction-source api-source">Express API Gateway</div>
-    <div class="interaction-line">── Read/Write Metadata ──➔</div>
-    <div class="interaction-target db-target">MongoDB Database</div>
-  </div>
+    <h2>2. Project Directory Structure</h2>
+    <p>The codebase is split into dedicated frontend and backend services organized as follows:</p>
+    <pre><code>Online_Judge/
+├── backend/
+│   ├── middleware/
+│   │   └── auth.js             # Express JWT token verification middleware
+│   ├── models/
+│   │   ├── Contest.js          # Mongoose schema for contests, dates, & registrations
+│   │   ├── Problem.js          # Mongoose schema for problems, categories, & test cases
+│   │   ├── Submission.js       # Mongoose schema for user code submits & judge results
+│   │   └── User.js             # Mongoose schema for profiles & solved stats tracking
+│   ├── routes/
+│   │   ├── auth.js             # Routes for login, signup, profiles, and guest workspace resets
+│   │   ├── contests.js         # Routes for fetching listings, leaderboards, and registers
+│   │   └── problems.js         # Routes for problem sets, recommendations, and execution submissions
+│   ├── utils/
+│   │   ├── complexityAnalyzer.js # OpenAI API wrapper analyzing time/memory complexity of code
+│   │   ├── ratingCalculator.js # Dynamically computes ranking score calculations
+│   │   └── sandbox.js          # Concurrency-controlled compilation and Docker runner
+│   ├── temp_runs/              # Directory holding temporary compilation code files
+│   ├── server.js               # Express application gateway, startup migrations, and cleanups
+│   └── Dockerfile              # Backend container file installing G++, python3, & openjdk-17
+├── frontend/
+│   ├── src/
+│   │   ├── components/         # Glassmorphic components (Pagination, Navbar)
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx # React Context managing login session state & localStorage
+│   │   ├── pages/
+│   │   │   ├── Contests.jsx       # Contest index, registers, and timing checks
+│   │   │   ├── Dashboard.jsx      # Progress charts and GitHub-style submission calendars
+│   │   │   ├── ProblemDetail.jsx  # IDE workspace: Monaco editor split-view and output console
+│   │   │   ├── Problems.jsx       # Problems list page with custom glassmorphic pagination
+│   │   │   └── SubmissionDetail.jsx # Execution report displaying syntax complexity audits
+│   │   ├── config.js           # API endpoints config featuring automated Vercel fallback routing
+│   │   ├── App.jsx             # React routing setup
+│   │   ├── index.css           # Global custom Vanilla CSS utility variables and animations
+│   │   └── main.jsx            # React root application entry point
+│   ├── nginx.prod.conf         # Production Nginx server proxying /api and handling SSL certs
+│   └── Dockerfile              # Frontend container file serving static build files via Nginx
+└── docker-compose.yml          # Container orchestrator configuring services, ports, & DB links</code></pre>
 
-  <div class="interaction-row">
-    <div class="interaction-source api-source">Express API Gateway</div>
-    <div class="interaction-line">── Enqueue Submissions ──➔</div>
-    <div class="interaction-target queue-target">Redis / BullMQ Queue</div>
-  </div>
-
-  <div class="interaction-row">
-    <div class="interaction-source worker-source">Submission Worker</div>
-    <div class="interaction-line">── Poll / Pull Jobs ──➔</div>
-    <div class="interaction-target queue-target">Redis / BullMQ Queue</div>
-  </div>
-
-  <div class="interaction-row">
-    <div class="interaction-source worker-source">Submission Worker</div>
-    <div class="interaction-line">── Fetch Testcases ──➔</div>
-    <div class="interaction-target db-target">MongoDB Database</div>
-  </div>
-
-  <div class="interaction-row">
-    <div class="interaction-source worker-source">Submission Worker</div>
-    <div class="interaction-line">── Safe Compile & Execute ──➔</div>
-    <div class="interaction-target docker-target">Docker Container Sandbox</div>
-  </div>
-
-  <div class="interaction-row">
-    <div class="interaction-source worker-source">Submission Worker</div>
-    <div class="interaction-line">── Write Run Results ──➔</div>
-    <div class="interaction-target db-target">MongoDB Database</div>
-  </div>
-
-  <div class="interaction-row">
-    <div class="interaction-source api-source">Express API Gateway</div>
-    <div class="interaction-line">── Real-time Status Push ──➔</div>
-    <div class="interaction-target client-target">React SPA (UI via WebSockets)</div>
-  </div>
-</div>
-
-<ul>
-<li><strong>React Client &amp; Express Gateway</strong>: The frontend communicates with the backend via REST APIs for operations such as logging in, creating problems, fetching lists, or submitting solutions. It also establishes a persistent WebSocket connection to receive instant job execution results.</li>
-<li><strong>Express Gateway &amp; JWT Auth</strong>: All requests are routed through a JSON Web Token middleware to parse credentials and authorize request context before hitting business routes.</li>
-<li><strong>Express Gateway &amp; Database</strong>: Metadata, user profiles, dashboard metrics, and problem lists are read and written to MongoDB using Mongoose models.</li>
-<li><strong>Express Gateway &amp; Redis/BullMQ Queue</strong>: Submissions are pushed as serializable job objects to the Redis task queue to offload heavy compilation CPU resources from the gateway.</li>
-<li><strong>Worker &amp; Redis Queue</strong>: The Node.js Worker polls the queue. It takes one code job at a time to execute sequentially or concurrently depending on server core capacity.</li>
-<li><strong>Worker &amp; Database</strong>: The Worker queries MongoDB to fetch specific test case files (inputs/expected outputs) for validation, and writes final status, run time, and memory metrics back to the database when complete.</li>
-<li><strong>Worker &amp; Docker Sandbox</strong>: The Worker spawns a temporary Docker container, maps code as a read-only volume, executes the code inside the container under CPU/RAM constraints, and captures stdout and stderr.</li>
-</ul>
-<hr />
-<h2>6. Component Breakdown &amp; Descriptions</h2>
-<h3>A. Frontend (React SPA)</h3>
-<p>Built using React, Vite, and Vanilla CSS with a glassmorphism and modern dark-themed aesthetic.
-- <strong>Problem Workspace</strong>: A dual-pane IDE environment.
-  - Left Panel: Tabbed navigation showing <em>Description</em>, <em>Submissions</em>, and <em>Leaderboard</em>.
-  - Right Panel: Integrated <strong>Monaco Editor</strong> (the same editor that powers VS Code) with auto-completion, bracket matching, syntax highlighting, theme options, and a collapsible run console.
-- <strong>User Dashboard</strong>: Dynamic progress trackers showing easy/medium/hard problems solved using SVGs/Canvas charts, recent activities, user ranking, and personal metrics.
-- <strong>Leaderboard</strong>: Real-time ranking of users based on solved problems, submission speeds, and weekly contest performance.</p>
-<h3>B. Backend API Gateway (Node.js &amp; Express.js)</h3>
-<p>Handles client requests, routes, business logic, and authentication.
-- <code>/api/auth</code>: Signup, Login (JWT tokens), OAuth (GitHub/Google).
-- <code>/api/problems</code>: CRUD operations for problems (Admin only for CUD), fetch lists, filters (tags, difficulty), and single problem details.
-- <code>/api/submissions</code>: Create submission (push to queue), fetch submissions for a user/problem, and get live status.
-- <code>/api/dashboard</code>: Fetch analytics, user statistics, and leaderboards.</p>
-<h3>C. Message Queue (Redis &amp; BullMQ)</h3>
-<p>Acts as the buffer between the API Gateway and the Execution Worker.
-- Ensures no submission is lost.
-- Allows scaling the number of workers horizontally if traffic spikes.</p>
-<h3>D. Secure Judge Worker (Docker Sandbox)</h3>
-<p>The core compiler and runner. It does the following for each submission:
-1. Fetches test cases (inputs and expected outputs) from the database or cache.
-2. Writes user code to a temporary file.
-3. Spawns an isolated Docker container with strict limits:
-   - <strong>Time Limit</strong>: (e.g., 2 seconds) enforced using container timeouts.
-   - <strong>Memory Limit</strong>: (e.g., 256MB) enforced via Docker memory constraints.
-   - <strong>Network Block</strong>: No internet access within the container to prevent malicious data leaks.
-   - <strong>Process Limit (Fork Bomb Protection)</strong>: Strictly limited process forks.
-4. Executes the code against input files, capturing stdout, stderr, execution time, and memory usage.
-5. Standardizes results:
-   - <strong>AC</strong> (Accepted)
-   - <strong>WA</strong> (Wrong Answer)
-   - <strong>TLE</strong> (Time Limit Exceeded)
-   - <strong>MLE</strong> (Memory Limit Exceeded)
-   - <strong>RE</strong> (Runtime Error)
-   - <strong>CE</strong> (Compilation Error)</p>
-<hr />
-<h2>7. Detailed Step-by-Step Submission Flow</h2>
-<p>The following sequence details how code execution is handled from the user interface:</p>
-<div class="flow-container">
-  <div class="flow-step">
-    <div class="flow-number">1</div>
-    <div class="flow-text">
-      <strong>User Submits</strong>
-      <span>Developer clicks "Submit Code" in React Monaco Editor workspace.</span>
+    <h2>3. System Architecture</h2>
+    <p>To ensure high availability and prevent CPU/Memory starvation during simultaneous code compilations, the backend gateway delegates all code executions to an in-memory concurrency promise queue.</p>
+    <div class="diagram-container">
+      <div class="diagram-grid">
+        <div class="diagram-box client-box">
+          <div class="diagram-box-title">Client Layer (Vercel)</div>
+          <div class="diagram-box-content">React SPA Workspace (Monaco Editor & Split Panes)</div>
+        </div>
+        <div class="diagram-connector">↕ (HTTPS / REST)</div>
+        
+        <div class="diagram-box api-box">
+          <div class="diagram-box-title">API & Gateway Layer (EC2 / Docker)</div>
+          <div class="diagram-box-content">Express.js API Router & JWT Session Guard</div>
+        </div>
+        <div class="diagram-connector">↓ (Enqueue Runs)</div>
+        
+        <div class="diagram-box queue-box">
+          <div class="diagram-box-title">Queuing Layer (sandbox.js)</div>
+          <div class="diagram-box-content">In-Memory Promise Queue (Bounded Concurrency via MAX_CONCURRENT_RUNS)</div>
+        </div>
+        <div class="diagram-connector">↓ (Compile & Spawn)</div>
+        
+        <div class="diagram-box worker-box">
+          <div class="diagram-box-title">Execution Layer (Docker Containers)</div>
+          <div class="diagram-box-content">Isolated Docker Compiler Environments (No network access, memory & time limited)</div>
+        </div>
+        
+        <div class="diagram-connector">↓ (Update Stats)</div>
+        <div class="diagram-box db-box">
+          <div class="diagram-box-title">Storage Layer</div>
+          <div class="diagram-box-content">MongoDB Database (Stores User, Problem, Submission, and Contest Schemas)</div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="flow-arrow">▼</div>
-  <div class="flow-step">
-    <div class="flow-number">2</div>
-    <div class="flow-text">
-      <strong>Queue Task</strong>
-      <span>Express Gateway creates DB record and pushes job parameters to Redis Queue.</span>
-    </div>
-  </div>
-  <div class="flow-arrow">▼</div>
-  <div class="flow-step">
-    <div class="flow-number">3</div>
-    <div class="flow-text">
-      <strong>Worker Dispatch</strong>
-      <span>Node Worker polls Redis, fetches problem test cases from MongoDB.</span>
-    </div>
-  </div>
-  <div class="flow-arrow">▼</div>
-  <div class="flow-step">
-    <div class="flow-number">4</div>
-    <div class="flow-text">
-      <strong>Isolated Run</strong>
-      <span>Worker executes code inside resource-limited, network-disabled Docker containers.</span>
-    </div>
-  </div>
-  <div class="flow-arrow">▼</div>
-  <div class="flow-step">
-    <div class="flow-number">5</div>
-    <div class="flow-text">
-      <strong>Live Update</strong>
-      <span>Worker saves result to DB. Server pushes final execution stats via WebSockets to React UI.</span>
-    </div>
-  </div>
-</div>
 
-<ol>
-<li><strong>User Action</strong>: The user writes a solution in the Monaco Editor and clicks <strong>Submit</strong>.</li>
-<li><strong>API Request</strong>: The React SPA sends a <code>POST</code> request to <code>/api/submissions</code> with the problem ID, code, and language.</li>
-<li><strong>Queue Ingestion</strong>: The Express server creates a submission record in MongoDB marked as <code>Queued</code> and pushes the job parameters (submission ID, code, language) to the Redis/BullMQ queue.</li>
-<li><strong>Immediate Acknowledgment</strong>: The Express server returns the submission ID and status to the client, which displays a loading/judging spinner.</li>
-<li><strong>Worker Polling</strong>: A background execution worker pulls the job from Redis and queries MongoDB to fetch the corresponding test cases (inputs/outputs) for the problem.</li>
-<li><strong>Sandboxed Run</strong>: For each test case, the worker spawns an isolated Docker container, writes the user code inside, runs it with the input parameters, and measures execution time and memory.</li>
-<li><strong>Result Persistence</strong>: The worker compiles the test case outcomes, updates the submission status in MongoDB (e.g. <code>Accepted</code>, <code>Wrong Answer</code>, <code>Time Limit Exceeded</code>), and fires a status update to the gateway.</li>
-<li><strong>Real-time Push</strong>: The Express server sends a WebSocket event containing the results to the client.</li>
-<li><strong>UI Update</strong>: The React SPA updates the screen, replacing the judging spinner with the final run results (execution time, memory used, test case results).</li>
-</ol>
-<hr />
-<h2>8. Technology Stack Justification</h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Layer</th>
-<th style="text-align: left;">Technology</th>
-<th style="text-align: left;">Rationale &amp; How it is Built</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>Frontend</strong></td>
-<td style="text-align: left;"><strong>React &amp; Vite</strong></td>
-<td style="text-align: left;">Extremely fast hot module reloading, component-based development, large ecosystem. Custom styling via <strong>Vanilla CSS</strong> modules utilizing modern variables, CSS grid/flexbox, transitions, and glassmorphic designs to create a premium IDE look.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Code Editor</strong></td>
-<td style="text-align: left;"><strong>Monaco Editor</strong></td>
-<td style="text-align: left;">The editor behind VS Code. Provides a premium developer experience with code autocompletion, language switching, theme selection (Dark, Light, High Contrast), and multi-cursor editing.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Backend</strong></td>
-<td style="text-align: left;"><strong>Node.js &amp; Express</strong></td>
-<td style="text-align: left;">Single language (JavaScript/TypeScript) end-to-end. High concurrency, asynchronous I/O ideal for handling API routes and WebSocket events without blocking.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Database</strong></td>
-<td style="text-align: left;"><strong>MongoDB &amp; Mongoose</strong></td>
-<td style="text-align: left;">Schema-flexibility works wonders for storing problem statements, markdown text, test cases (variable structure), and submissions logs. Mongoose provides object modeling and validation.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Queue</strong></td>
-<td style="text-align: left;"><strong>Redis &amp; BullMQ</strong></td>
-<td style="text-align: left;">Redis provides lightning-fast memory storage. BullMQ manages job prioritization, retry logic, concurrency control, and delayed tasks.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Sandbox</strong></td>
-<td style="text-align: left;"><strong>Docker</strong></td>
-<td style="text-align: left;">Isolates the running code from the host. Enforces resource quotas (CPU, RAM) and shuts down malicious activity (e.g., trying to read system files or run fork bombs).</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2>9. Database Schema Designs</h2>
-<h3>User Schema (<code>users</code>)</h3>
-<ul>
-<li><code>_id</code>: ObjectId</li>
-<li><code>username</code>: String (Unique)</li>
-<li><code>email</code>: String (Unique)</li>
-<li><code>passwordHash</code>: String</li>
-<li><code>role</code>: String (Enum: <code>'user'</code>, <code>'admin'</code>)</li>
-<li><code>solvedCount</code>: Number</li>
-<li><code>profile</code>: { avatarUrl, bio, website }</li>
-<li><code>createdAt</code>: Date</li>
-</ul>
-<h3>Problem Schema (<code>problems</code>)</h3>
-<ul>
-<li><code>_id</code>: ObjectId</li>
-<li><code>title</code>: String</li>
-<li><code>slug</code>: String (Unique, e.g. <code>'two-sum'</code>)</li>
-<li><code>description</code>: String (Markdown content)</li>
-<li><code>difficulty</code>: String (Enum: <code>'Easy'</code>, <code>'Medium'</code>, <code>'Hard'</code>)</li>
-<li><code>tags</code>: [String]</li>
-<li><code>timeLimit</code>: Number (in ms)</li>
-<li><code>memoryLimit</code>: Number (in MB)</li>
-<li><code>testCases</code>: [
-    {
-      <code>input</code>: String,
-      <code>expectedOutput</code>: String,
-      <code>isSample</code>: Boolean (true shows it on problem description)
-    }
-  ]</li>
-<li><code>createdAt</code>: Date</li>
-</ul>
-<h3>Submission Schema (<code>submissions</code>)</h3>
-<ul>
-<li><code>_id</code>: ObjectId</li>
-<li><code>userId</code>: ObjectId (Ref: User)</li>
-<li><code>problemId</code>: ObjectId (Ref: Problem)</li>
-<li><code>code</code>: String</li>
-<li><code>language</code>: String (Enum: <code>'cpp'</code>, <code>'java'</code>, <code>'python'</code>, <code>'javascript'</code>)</li>
-<li><code>status</code>: String (Enum: <code>'Queued'</code>, <code>'Judging'</code>, <code>'Accepted'</code>, <code>'Wrong Answer'</code>, <code>'Time Limit Exceeded'</code>, <code>'Memory Limit Exceeded'</code>, <code>'Runtime Error'</code>, <code>'Compilation Error'</code>)</li>
-<li><code>runtime</code>: Number (ms)</li>
-<li><code>memory</code>: Number (KB)</li>
-<li><code>errorMessage</code>: String (for compilation or runtime errors)</li>
-<li><code>createdAt</code>: Date</li>
-</ul>
-<hr />
-<h2>10. Premium UI Page Navigation &amp; Layout</h2>
-<p>We design a highly interactive, gorgeous visual layout with dark mode glassmorphism (<code>backdrop-filter: blur()</code>).</p>
-<div class="nav-map-container">
-  <div style="display: flex; align-items: center;">
-    <div class="nav-node main-node">Landing / Auth Page</div>
-    <div class="flow-arrow-horizontal">➔</div>
-    <div class="nav-node main-node">Dashboard</div>
-  </div>
-  
-  <div class="nav-sub-grid">
-    <div class="nav-branch">
-      <div class="flow-arrow-down">▼</div>
-      <div class="nav-node">Problem List Set</div>
-      <div class="flow-arrow-down">▼</div>
-      <div class="nav-node workspace-node">Problem IDE Workspace</div>
-    </div>
-    
-    <div class="nav-branch">
-      <div class="flow-arrow-down">▼</div>
-      <div class="nav-node">Global Leaderboard</div>
-    </div>
-  </div>
-</div>
+    <h2>4. Core Technical Subsystems</h2>
 
-<h3>UI Navigation Map</h3>
-<ul>
-<li><strong>Landing Page</strong> (Auth Gateway)</li>
-<li>➔ <strong>Dashboard</strong> (Circular charts, GitHub-style calendar, recent activities)</li>
-<li>➔ <strong>Problem Set List</strong> (Difficulty filter, tag search, completion badges)<ul>
-<li>➔ <strong>Problem Solve Workspace (IDE)</strong></li>
-<li>Left Pane: Problem description, sample test cases, personal submissions</li>
-<li>Right Pane: Monaco Editor (with themes &amp; language pickers), Run/Submit console</li>
-</ul>
-</li>
-<li>➔ <strong>Global Leaderboard</strong> (Rankings, scores, rating indicators)</li>
-</ul>
-<h3>Key Screens</h3>
-<ol>
-<li><strong>Dashboard</strong></li>
-<li><strong>Header</strong>: Sticky glass panel, blurred background, search bar, profile avatar drop-down.</li>
-<li>
-<p><strong>Main Panel</strong>: Grid of cards.</p>
-<ul>
-<li>Card 1: <em>Progress Doughnut Chart</em> showing solved ratios (green for easy, amber for medium, ruby red for hard).</li>
-<li>Card 2: <em>Activity Calendar Heatmap</em> (GitHub-style submission grid) showing frequency of submissions.</li>
-<li>Card 3: <em>Recent Submissions Table</em> with live-status badges.</li>
-<li>Card 4: <em>Recommended Problems</em> list matching user's weak topics.</li>
-</ul>
-</li>
-<li>
-<p><strong>Problem Workspace (The "IDE" View)</strong></p>
-</li>
-<li>Header: Back button to problem list, toggle button for Fullscreen, Run / Submit buttons.</li>
-<li>
-<p>Split Layout (Resizable panes):</p>
-<ul>
-<li><strong>Left Side (tabs)</strong>:</li>
-<li><em>Description</em>: HTML rendering of Markdown problem statements, sample test cases with copy buttons, constraints block.</li>
-<li><em>Submissions</em>: History of previous attempts, including execution speed, memory used, and codes.</li>
-<li><strong>Right Side (tabs)</strong>:</li>
-<li><em>Editor Pane</em>: Full-screen Monaco Editor window. Language picker floating top-right.</li>
-<li><em>Console Pane</em> (slide-up): Testcases input editor and stdout console output.</li>
-</ul>
-</li>
-<li>
-<p><strong>Leaderboard</strong></p>
-</li>
-<li>Live ranks of top performers with colorful badges (Gold, Silver, Bronze icons).</li>
-<li>Metrics: Rank, Name, Total Score, Problems Solved, and Contest Rating.</li>
-</ol>
-<hr />
-<h2>11. Plan for Sandbox Execution Setup</h2>
-<p>For a local setup and development ease:
-- We can construct a simple Dockerfile for a generic runner.
-- The worker executes:
-  <code>docker run --rm -v C:\temp\workspace:/app -w /app --network none --memory 256m --memory-swap 256m my-compiler-image python execute.py</code>
-- We will map submission directories into the Docker container as read-only volumes to allow code read, preventing files from being permanently modified.
-- For Javascript, Python, C++, and Java, standard compilers are pre-installed in the Docker image.</p>
-<hr />
-<p><strong>Done by: Harshith</strong></p>
+    <h3>A. Concurrently Bounded Task Execution Queue</h3>
+    <p>The code execution utility in <code>sandbox.js</code> maintains an in-memory queue that restricts peak execution concurrency to avoid crashing the server. Key details include:</p>
+    <ul>
+        <li><strong>Queue Array Structure:</strong> Stores functions and their promise resolvers in a FIFO structure: <code>queue.push({ fn, resolve })</code>.</li>
+        <li><strong>Concurrency Limiting:</strong> Governed by <code>MAX_CONCURRENT_RUNS</code>, defaulting to the host CPU cores minus 1: <code>Math.max(1, os.cpus().length - 1)</code>.</li>
+        <li><strong>Isolated Container Execution:</strong> Spawns compilers (Python, Node, G++, Java) in temporary read-only folders inside the <code>temp_runs</code> folder.</li>
+        <li><strong>Self-Cleaning:</strong> Clears folders immediately after run execution. Any orphaned folders are recursively wiped when the Express gateway starts up in <code>server.js</code> to prevent disk capacity exhaustion.</li>
+    </ul>
+
+    <h3>B. Session Authentication & Security</h3>
+    <ul>
+        <li><strong>Authentication Flow:</strong> Handled by <code>AuthContext.jsx</code> on the frontend and <code>auth.js</code> middleware on the backend using JWT (JSON Web Tokens). Tokens are stored in browser <code>localStorage</code> and passed in requests using the <code>Authorization: Bearer &lt;token&gt;</code> header.</li>
+        <li><strong>Guest Mode isolation:</strong> Clicking "Continue as Guest" signs in a shared guest account. To prevent guests from seeing each other's submissions, the server automatically resets the guest account's submission history and solved count to zero every time a guest logs in.</li>
+        <li><strong>Security Constraints:</strong> Executing code containers are stripped of network access (<code>--network none</code>) to prevent data exfiltration, memory-bound to 256MB, and time-capped (e.g. 2000ms) to prevent infinite loops and resource hogging.</li>
+    </ul>
+
+    <h2>5. Features Built & Integrated</h2>
+    <ul>
+        <li><strong>Glassmorphic Pagination:</strong> Custom glass-card navigation controls built for the Problems listing and User Profile histories, avoiding large payload lags.</li>
+        <li><strong>Contest Workspace Mode:</strong> Users solving problems from a contest are restricted within the contest workflow (back-routing leads back to the active contest dashboard rather than the general problem page).</li>
+        <li><strong>Contest Timer:</strong> Embedded active countdown clocks in the workspaces that warn users and lock submissions once the contest expires.</li>
+        <li><strong>Dynamic Contest Statuses:</strong> Contest statuses (Upcoming, Active, Completed) are calculated on-the-fly on backend fetches according to current server timestamps, keeping listing badges in perfect synchronization.</li>
+        <li><strong>Diagnostic Sandbox Results:</strong> Displays descriptive compiler error stack traces, runtime faults, or Time Limit Exceeded (TLE) messages on dry runs and code submits.</li>
+    </ul>
+
+    <h2>6. Production Deployment Architecture</h2>
+    <div class="diagram-container">
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="nav-node main-node">Vercel Frontend (HTTPS)</div>
+        <div class="flow-arrow-down">▼ (API calls fallback to EC2)</div>
+        <div class="nav-node main-node">AWS EC2 Server (Static Elastic IP)</div>
+        <div class="nav-sub-grid">
+          <div class="nav-branch">
+            <div class="nav-node">Nginx HTTPS Proxy (Port 443)</div>
+            <div class="flow-arrow-down">▼</div>
+            <div class="nav-node">Certbot SSL Certificates</div>
+          </div>
+          <div class="nav-branch">
+            <div class="nav-node">Docker Compose Network</div>
+            <div class="flow-arrow-down">▼</div>
+            <div class="nav-node">Backend Node API (Port 5000)</div>
+            <div class="flow-arrow-down">▼</div>
+            <div class="nav-node">MongoDB Database (Port 27017)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul>
+        <li><strong>Frontend Hosting:</strong> Deployed as a static React bundle on **Vercel** with automatic HTTPS.</li>
+        <li><strong>Automatic API Fallback Routing:</strong> The client-side configuration checks if the user is visiting from a <code>*.vercel.app</code> hostname. If true, it automatically routes all API traffic directly to the secure EC2 backend.</li>
+        <li><strong>Backend Server:</strong> Orchestrated using **Docker Compose** on an **AWS EC2** instance.</li>
+        <li><strong>Static Networking (Elastic IP):</strong> Associated an AWS Elastic IP to keep the server IP static, avoiding broken API domain mapping endpoints.</li>
+        <li><strong>Nginx Reverse Proxy & SSL:</strong> Handles incoming API routes on port 443 and proxies traffic to the Express container. Features secure TLS/SSL encryption generated via Certbot Let's Encrypt certificates.</li>
+    </ul>
+
+    <h2>7. Technical Challenges & Solutions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Challenge / Bug Encountered</th>
+                <th>Root Cause Analysis</th>
+                <th>Resolution Applied</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Server Crashes on Login / Submissions</strong></td>
+                <td>Docker overlay layers and compile files filled up the AWS EC2 instance disk (6.7GB root volume), resulting in <code>No space left on device</code> database write failures.</td>
+                <td>Performed deep system vacuuming, systemctl containerd cache resets, and integrated automatic startup folder purge hooks in `server.js` to ensure orphaned temporary code runs are deleted.</td>
+            </tr>
+            <tr>
+                <td><strong>Intermittent Server Connection Errors</strong></td>
+                <td>Wildcard domains like <code>sslip.io</code> are frequently throttled or blocked by local ISP DNS servers, causing DNS lookups to time out on client browsers.</td>
+                <td>Created a dedicated Elastic IP migration guide showing how to attach an Elastic IP in AWS to stabilize backend connections. Added fallback checking on Vite configurations.</td>
+            </tr>
+            <tr>
+                <td><strong>Stale Contest Badges</strong></td>
+                <td>Contest statuses (Active/Completed) were stored as static string values in the database, causing expired contests to show as "LIVE NOW" to users.</td>
+                <td>Rewrote the backend contest endpoints to compute contest statuses dynamically on request based on the current timestamp, automatically updating outdated records in the DB asynchronously.</td>
+            </tr>
+            <tr>
+                <td><strong>Contest Workspace Escape</strong></td>
+                <td>Opening a problem from inside a contest redirected users to the generic problems page and wiped contest tracking headers.</td>
+                <td>Modified client routers to pass <code>contestId</code> query parameters, keeping users inside the contest solver interface, and updated back arrow navigation to return users to the active contest dashboard.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr />
+    <p><strong>Lead Engineer / Contributor: Harshith</strong></p>
 </body>
 </html>
