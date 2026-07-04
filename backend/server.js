@@ -45,6 +45,22 @@ mongoose
   .then(async () => {
     console.log('Successfully connected to MongoDB Database.');
 
+    // Clean up temporary run folders from previous executions on startup
+    try {
+      const fs = require('fs');
+      const tempRunsPath = path.resolve(__dirname, 'temp_runs');
+      if (fs.existsSync(tempRunsPath)) {
+        const files = fs.readdirSync(tempRunsPath);
+        for (const file of files) {
+          const filePath = path.join(tempRunsPath, file);
+          fs.rmSync(filePath, { recursive: true, force: true });
+        }
+        console.log('[Cleanup] Cleaned up legacy temp_runs folders on startup.');
+      }
+    } catch (cleanupErr) {
+      console.error('Failed to clean up temp_runs on startup:', cleanupErr.message);
+    }
+
     // Recalculate and synchronize user solved counts on startup
     try {
       const User = require('./models/User');
