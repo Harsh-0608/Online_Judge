@@ -41,3 +41,9 @@ backend/temp_runs/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# AI guides and designs
+high_level_design.html
+high_level_design.pdf
+hosting_guide.md
+
