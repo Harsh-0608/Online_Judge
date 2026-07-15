@@ -273,7 +273,7 @@ const Dashboard = () => {
     );
 
     return (
-      <div style={{ padding: '36px 40px', maxWidth: '1280px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
+      <div className="responsive-container" style={{ maxWidth: '1280px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
         {/* Header Block */}
         <div className="glass-card animate-fade-in" style={{
           marginBottom: '28px', padding: '24px 32px',
@@ -489,7 +489,7 @@ const Dashboard = () => {
     const solvedProblems = problems.filter(p => p.isSolved);
 
     return (
-      <div style={{ padding: '36px 40px', maxWidth: '1280px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
+      <div className="responsive-container" style={{ maxWidth: '1280px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
         {/* Header Block */}
         <div className="glass-card animate-fade-in" style={{
           marginBottom: '28px', padding: '24px 32px',
@@ -550,7 +550,7 @@ const Dashboard = () => {
   // If URL includes view=leaderboard, render the global standings of all users on the platform
   if (view === 'leaderboard') {
     return (
-      <div style={{ padding: '36px 40px', maxWidth: '900px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
+      <div className="responsive-container" style={{ maxWidth: '900px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
         {/* Header Block */}
         <div className="glass-card animate-fade-in" style={{
           marginBottom: '28px', padding: '24px 32px',
@@ -696,7 +696,7 @@ const Dashboard = () => {
     );
 
     return (
-      <div style={{ padding: '36px 40px', maxWidth: '1280px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
+      <div className="responsive-container" style={{ maxWidth: '1280px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
         
         {/* Profile Header Block */}
         <div className="glass-card animate-fade-in" style={{
@@ -1045,7 +1045,7 @@ const Dashboard = () => {
 
   // DEFAULT VIEW: Only the problems list and solvers sidebar widget (no progress charts or dashboards)
   return (
-    <div style={{ padding: '36px 40px', maxWidth: '1340px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
+    <div className="responsive-container" style={{ maxWidth: '1340px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
       
       {/* Welcome Banner */}
       <div className="glass-card animate-fade-in" style={{

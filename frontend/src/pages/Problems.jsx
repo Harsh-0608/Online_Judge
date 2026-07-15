@@ -125,7 +125,7 @@ const Problems = () => {
   );
 
   return (
-    <div style={{ padding: '40px 24px', maxWidth: '1340px', margin: '0 auto', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
+    <div className="responsive-container" style={{ maxWidth: '1340px', margin: '0 auto', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
       
       {/* Title Header Section */}
       <div className="glass-card animate-fade-in" style={{ padding: '24px 32px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>

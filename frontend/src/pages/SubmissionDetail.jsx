@@ -207,7 +207,7 @@ const SubmissionDetail = () => {
   const memoryLimitMB = hasLimits ? Math.round(submission.problem.memoryLimit / 1024) : 256;
 
   return (
-    <div style={{ padding: '36px 24px', maxWidth: '1000px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
+    <div className="responsive-container" style={{ maxWidth: '1000px', margin: '0 auto', minHeight: 'calc(100vh - 70px)', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
       
       {/* Page Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>

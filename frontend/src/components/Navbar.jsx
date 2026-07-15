@@ -48,7 +48,7 @@ const Navbar = () => {
               }}
             >
               <LayoutDashboard size={18} />
-              Dashboard
+              <span className="nav-text">Dashboard</span>
             </Link>
             <Link 
               to="/problems" 
@@ -64,7 +64,7 @@ const Navbar = () => {
               }}
             >
               <Code size={18} />
-              Problems
+              <span className="nav-text">Problems</span>
             </Link>
             <Link 
               to="/contests" 
@@ -80,7 +80,7 @@ const Navbar = () => {
               }}
             >
               <Trophy size={18} />
-              Contests
+              <span className="nav-text">Contests</span>
             </Link>
             
             <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--border-glass)' }}></div>
@@ -103,11 +103,11 @@ const Navbar = () => {
                 className="profile-btn-nav"
               >
                 <User size={16} color="var(--primary)" />
-                <span style={{ fontSize: '13px', fontWeight: '600' }}>{user.username}</span>
+                <span className="nav-text" style={{ fontSize: '13px', fontWeight: '600' }}>{user.username}</span>
               </Link>
               <button onClick={handleLogout} className="btn btn-outline" style={{ padding: '8px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <LogOut size={14} />
-                Logout
+                <span className="nav-text">Logout</span>
               </button>
             </div>
           </>

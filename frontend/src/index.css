@@ -770,3 +770,58 @@ table th, table td {
 .monaco-editor {
   border-radius: 0;
 }
+
+/* ===============================
+   RESPONSIVE CONTAINERS & HELPERS
+   =============================== */
+.responsive-container {
+  padding: 36px 40px;
+}
+
+@media (max-width: 768px) {
+  .responsive-container {
+    padding: 20px 16px !important;
+  }
+  
+  /* Navbar adjustments for mobile */
+  .navbar {
+    padding: 0 16px !important;
+  }
+  .navbar .nav-text {
+    display: none !important;
+  }
+  .navbar a, .navbar button {
+    gap: 0 !important;
+  }
+  .profile-btn-nav {
+    padding: 6px !important;
+    border-radius: 50% !important;
+  }
+  
+  /* Contest grid layout for mobile */
+  .contest-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
+/* Pulse animation for Live indicator */
+@keyframes pulse-timer {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pulse-timer-dot {
+  animation: pulse-timer 1.5s infinite ease-in-out;
+}
+

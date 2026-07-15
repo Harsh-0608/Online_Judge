@@ -375,31 +375,52 @@ const ProblemDetail = () => {
     );
   }
 
+  const now = new Date();
+  const isContestActive = contest && now >= new Date(contest.startTime) && now <= new Date(contest.endTime);
+  const isContestUpcoming = contest && now < new Date(contest.startTime);
+
   return (
     <div style={{ height: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
       
       {/* Contest Banner */}
       {contest && (
         <div style={{
-          backgroundColor: 'rgba(239, 68, 68, 0.08)',
-          borderBottom: '1px solid rgba(239, 68, 68, 0.25)',
-          padding: '8px 24px',
+          background: 'rgba(10, 14, 26, 0.75)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid var(--border-glass)',
+          padding: '10px 24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexShrink: 0,
           zIndex: 15,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Trophy size={16} color="var(--danger)" />
-            <span style={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--danger)' }}>
-              Live Contest Match: <strong style={{ color: 'var(--color-text-main)' }}>{contest.title}</strong>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Trophy size={16} color="var(--primary)" style={{ filter: 'drop-shadow(0 0 4px rgba(99,102,241,0.3))' }} />
+            <span style={{ fontSize: '12.5px', fontWeight: '800', letterSpacing: '0.03em', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              CONTEST MATCH: <strong style={{ color: 'var(--primary-hover)' }}>{contest.title}</strong>
+              <span style={{
+                fontSize: '10px',
+                fontWeight: '900',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                backgroundColor: isContestActive ? 'var(--danger-glow)' : isContestUpcoming ? 'var(--primary-glow)' : 'rgba(255,255,255,0.03)',
+                color: isContestActive ? 'var(--danger)' : isContestUpcoming ? 'var(--primary)' : 'var(--color-text-muted)',
+                border: `1px solid ${isContestActive ? 'rgba(220,38,38,0.15)' : isContestUpcoming ? 'rgba(79,70,229,0.15)' : 'var(--border-glass)'}`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                {isContestActive && <span className="pulse-timer-dot" style={{ width: '6px', height: '6px', backgroundColor: 'var(--danger)', borderRadius: '50%' }}></span>}
+                {isContestActive ? 'LIVE' : isContestUpcoming ? 'UPCOMING' : 'FINISHED'}
+              </span>
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Clock size={14} color="var(--danger)" />
-            <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--danger)', fontFamily: 'monospace' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255,255,255,0.02)', padding: '5px 12px', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
+            <Clock size={14} color={isContestActive ? 'var(--danger)' : 'var(--color-text-muted)'} />
+            <span style={{ fontSize: '13px', fontWeight: '850', color: isContestActive ? 'var(--danger)' : 'var(--color-text-main)', fontFamily: 'monospace' }}>
               {contestTimeLeft}
             </span>
           </div>

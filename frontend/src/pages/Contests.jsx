@@ -193,7 +193,7 @@ const Contests = () => {
   };
 
   return (
-    <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
+    <div className="responsive-container" style={{ maxWidth: '1200px', margin: '0 auto', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 40%)' }}>
       
       {/* Dynamic View Toggle */}
       {selectedContest ? (
