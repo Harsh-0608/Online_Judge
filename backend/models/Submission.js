@@ -59,6 +59,10 @@ const submissionSchema = new mongoose.Schema({
   },
   complexityInsight: {
     type: String
+  },
+  expiresAt: {
+    type: Date,
+    index: { expires: 0 }
   }
 }, {
   timestamps: true

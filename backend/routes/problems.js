@@ -621,7 +621,7 @@ router.post('/:slug/submit', protect, async (req, res) => {
       complexity.insight = `[LIMIT NOTICE] Your solution was accepted, but it timed out on larger test cases (exceeded ${problem.timeLimit}ms limit) because it uses a sub-optimal approach. We've accepted it since it is an Easy/Medium difficulty problem, but you should optimize it!\n\n` + complexity.insight;
     }
 
-    const submission = new Submission({
+    const submissionData = {
       user: req.user._id,
       problem: problem._id,
       code,
@@ -637,8 +637,13 @@ router.post('/:slug/submit', protect, async (req, res) => {
       timeComplexity: complexity.timeComplexity,
       spaceComplexity: complexity.spaceComplexity,
       complexityInsight: complexity.insight
-    });
+    };
 
+    if (req.user.email === 'guest@codeplex.com') {
+      submissionData.expiresAt = new Date(Date.now() + 3600 * 1000); // 1 hour TTL
+    }
+
+    const submission = new Submission(submissionData);
     await submission.save();
 
     problem.totalSubmissions = (problem.totalSubmissions || 0) + 1;
