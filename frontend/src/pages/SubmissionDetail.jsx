@@ -16,6 +16,8 @@ const SubmissionDetail = () => {
   const [selectedTestCaseIdx, setSelectedTestCaseIdx] = useState(0);
 
   useEffect(() => {
+    let timerId;
+
     const fetchSubmissionDetails = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -32,6 +34,11 @@ const SubmissionDetail = () => {
             const firstFailedIdx = data.submission.testCaseResults.findIndex(tc => tc.status !== 'Accepted');
             setSelectedTestCaseIdx(firstFailedIdx !== -1 ? firstFailedIdx : 0);
           }
+
+          // If AI review is still processing, poll again in 2 seconds
+          if (data.submission.timeComplexity === 'Analyzing...') {
+            timerId = setTimeout(fetchSubmissionDetails, 2000);
+          }
         } else {
           setError(data.message || 'Submission not found');
         }
@@ -43,6 +50,10 @@ const SubmissionDetail = () => {
     };
     
     fetchSubmissionDetails();
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
   }, [id]);
 
   const getStatusColor = (status) => {
@@ -329,30 +340,37 @@ const SubmissionDetail = () => {
                 </strong>
                 
                 {submission.complexityAnalysis && (
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <span style={{ 
-                      fontSize: '11px', 
-                      fontWeight: '800', 
-                      padding: '3px 8px', 
-                      borderRadius: '6px',
-                      backgroundColor: submission.complexityAnalysis.timeComplexity.includes('N^2') || submission.complexityAnalysis.timeComplexity.includes('2^N') ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
-                      color: submission.complexityAnalysis.timeComplexity.includes('N^2') || submission.complexityAnalysis.timeComplexity.includes('2^N') ? 'var(--danger)' : 'var(--success)',
-                      border: `1px solid ${submission.complexityAnalysis.timeComplexity.includes('N^2') || submission.complexityAnalysis.timeComplexity.includes('2^N') ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`
-                    }}>
-                      Time: {submission.complexityAnalysis.timeComplexity}
-                    </span>
-                    <span style={{ 
-                      fontSize: '11px', 
-                      fontWeight: '800', 
-                      padding: '3px 8px', 
-                      borderRadius: '6px',
-                      backgroundColor: submission.complexityAnalysis.spaceComplexity.includes('1') ? 'rgba(16, 185, 129, 0.08)' : 'rgba(99, 102, 241, 0.08)',
-                      color: submission.complexityAnalysis.spaceComplexity.includes('1') ? 'var(--success)' : 'var(--primary-hover)',
-                      border: `1px solid ${submission.complexityAnalysis.spaceComplexity.includes('1') ? 'rgba(16, 185, 129, 0.2)' : 'rgba(99, 102, 241, 0.2)'}`
-                    }}>
-                      Space: {submission.complexityAnalysis.spaceComplexity}
-                    </span>
-                  </div>
+                  submission.complexityAnalysis.timeComplexity === 'Analyzing...' ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(99, 102, 241, 0.05)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(99, 102, 241, 0.15)' }}>
+                      <div style={{ width: '12px', height: '12px', border: '2px solid var(--border-glass)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                      <span style={{ fontSize: '11.5px', fontWeight: '800', color: 'var(--primary-hover)' }}>🤖 AI Review Processing...</span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: '800', 
+                        padding: '3px 8px', 
+                        borderRadius: '6px',
+                        backgroundColor: submission.complexityAnalysis.timeComplexity.includes('N^2') || submission.complexityAnalysis.timeComplexity.includes('2^N') ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+                        color: submission.complexityAnalysis.timeComplexity.includes('N^2') || submission.complexityAnalysis.timeComplexity.includes('2^N') ? 'var(--danger)' : 'var(--success)',
+                        border: `1px solid ${submission.complexityAnalysis.timeComplexity.includes('N^2') || submission.complexityAnalysis.timeComplexity.includes('2^N') ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`
+                      }}>
+                        Time: {submission.complexityAnalysis.timeComplexity}
+                      </span>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: '800', 
+                        padding: '3px 8px', 
+                        borderRadius: '6px',
+                        backgroundColor: submission.complexityAnalysis.spaceComplexity.includes('1') ? 'rgba(16, 185, 129, 0.08)' : 'rgba(99, 102, 241, 0.08)',
+                        color: submission.complexityAnalysis.spaceComplexity.includes('1') ? 'var(--success)' : 'var(--primary-hover)',
+                        border: `1px solid ${submission.complexityAnalysis.spaceComplexity.includes('1') ? 'rgba(16, 185, 129, 0.2)' : 'rgba(99, 102, 241, 0.2)'}`
+                      }}>
+                        Space: {submission.complexityAnalysis.spaceComplexity}
+                      </span>
+                    </div>
+                  )
                 )}
               </div>
               

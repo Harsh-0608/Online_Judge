@@ -609,18 +609,6 @@ router.post('/:slug/submit', protect, async (req, res) => {
       finalPassedCount = Math.min(originalCount - 1, Math.floor((result.passedCount / result.totalCount) * originalCount));
     }
 
-    // Analyze complexity
-    let complexity = { approach: 'Direct Evaluation', timeComplexity: 'O(1)', spaceComplexity: 'O(1)', insight: '' };
-    try {
-      complexity = await analyzeComplexity(code, language, problem.functionName);
-    } catch (analysisErr) {
-      console.error('Complexity analyzer execution failed:', analysisErr.message);
-    }
-
-    if (wasTleOverridden) {
-      complexity.insight = `[LIMIT NOTICE] Your solution was accepted, but it timed out on larger test cases (exceeded ${problem.timeLimit}ms limit) because it uses a sub-optimal approach. We've accepted it since it is an Easy/Medium difficulty problem, but you should optimize it!\n\n` + complexity.insight;
-    }
-
     const submissionData = {
       user: req.user._id,
       problem: problem._id,
@@ -633,10 +621,10 @@ router.post('/:slug/submit', protect, async (req, res) => {
       totalCount: finalTotalCount,
       errorDetails: result.status !== 'Accepted' ? (result.errorDetails || result.status) : '',
       testCaseResults: result.testCaseResults || [],
-      approach: complexity.approach,
-      timeComplexity: complexity.timeComplexity,
-      spaceComplexity: complexity.spaceComplexity,
-      complexityInsight: complexity.insight
+      approach: 'Analyzing...',
+      timeComplexity: 'Analyzing...',
+      spaceComplexity: 'Analyzing...',
+      complexityInsight: 'Our AI review algorithm is checking your code efficiency in the background. Please wait a moment...'
     };
 
     if (req.user.email === 'guest@codeplex.com') {
@@ -645,6 +633,43 @@ router.post('/:slug/submit', protect, async (req, res) => {
 
     const submission = new Submission(submissionData);
     await submission.save();
+
+    // Trigger AI complexity analysis asynchronously in the background
+    analyzeComplexity(code, language, problem.functionName)
+      .then(async (complexity) => {
+        if (wasTleOverridden) {
+          complexity.insight = `[LIMIT NOTICE] Your solution was accepted, but it timed out on larger test cases (exceeded ${problem.timeLimit}ms limit) because it uses a sub-optimal approach. We've accepted it since it is an Easy/Medium difficulty problem, but you should optimize it!\n\n` + complexity.insight;
+        }
+        await Submission.updateOne({ _id: submission._id }, {
+          approach: complexity.approach,
+          timeComplexity: complexity.timeComplexity,
+          spaceComplexity: complexity.spaceComplexity,
+          complexityInsight: complexity.insight
+        });
+        console.log(`[AI Review] Asynchronously updated complexity metrics for submission ${submission._id}`);
+      })
+      .catch(async (analysisErr) => {
+        console.error(`Asynchronous complexity analysis failed for submission ${submission._id}:`, analysisErr.message);
+        
+        // Fallback to static complexity analysis offline (instant)
+        let fallback = { approach: 'Direct Evaluation', timeComplexity: 'O(1)', spaceComplexity: 'O(1)', insight: '' };
+        try {
+          fallback = analyzeComplexityStatic(code, language, problem.functionName);
+        } catch (staticErr) {
+          console.error('Static fallback analysis failed:', staticErr.message);
+        }
+        
+        if (wasTleOverridden) {
+          fallback.insight = `[LIMIT NOTICE] Your solution was accepted, but it timed out on larger test cases (exceeded ${problem.timeLimit}ms limit) because it uses a sub-optimal approach. We've accepted it since it is an Easy/Medium difficulty problem, but you should optimize it!\n\n` + fallback.insight;
+        }
+        
+        await Submission.updateOne({ _id: submission._id }, {
+          approach: fallback.approach,
+          timeComplexity: fallback.timeComplexity,
+          spaceComplexity: fallback.spaceComplexity,
+          complexityInsight: fallback.insight || 'Standard execution time constraints apply.'
+        });
+      });
 
     problem.totalSubmissions = (problem.totalSubmissions || 0) + 1;
     if (result.status === 'Accepted') {
