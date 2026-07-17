@@ -26,6 +26,22 @@ app.use('/api/auth', authRoutes);
 app.use('/api/problems', problemsRoutes);
 app.use('/api/contests', contestsRoutes);
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState;
+  const statusMap = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  };
+  res.json({
+    success: dbStatus === 1,
+    database: statusMap[dbStatus] || 'unknown',
+    timestamp: new Date()
+  });
+});
+
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Unhandled Error:', err.stack);
@@ -38,6 +54,20 @@ app.use((err, req, res, next) => {
 // Database connection & Server start
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/online-judge';
+
+// Database connection listeners
+mongoose.connection.on('disconnected', () => {
+  console.warn('[MongoDB] Connection lost!');
+});
+mongoose.connection.on('connected', () => {
+  console.info('[MongoDB] Connected successfully.');
+});
+mongoose.connection.on('reconnected', () => {
+  console.info('[MongoDB] Reconnected successfully.');
+});
+mongoose.connection.on('error', (err) => {
+  console.error('[MongoDB] Connection error:', err.message);
+});
 
 console.log('Connecting to MongoDB...');
 mongoose
